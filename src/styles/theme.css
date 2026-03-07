@@ -1,0 +1,239 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* VaultID Color System */
+  --page-bg: #050D1A;
+  --sidebar-bg: #080F1E;
+  --card-surface: #0A1628;
+  --card-elevated: #0F1E35;
+  --accent-cyan: #00C2FF;
+  --success-green: #00FF88;
+  --warning-amber: #F5A623;
+  --danger-red: #FF4444;
+  --text-primary: #F0F4FF;
+  --text-secondary: #7A8FA6;
+  --gradient-cta-start: #00C2FF;
+  --gradient-cta-end: #7B2FFF;
+  --border-default: rgba(0, 194, 255, 0.12);
+  --border-hover: rgba(0, 194, 255, 0.45);
+  --glow-shadow: 0 0 40px rgba(0, 194, 255, 0.08);
+
+  /* Typography */
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Standard theme vars for compatibility */
+  --font-size: 16px;
+  --background: #050D1A;
+  --foreground: #F0F4FF;
+  --card: #0A1628;
+  --card-foreground: #F0F4FF;
+  --popover: #0F1E35;
+  --popover-foreground: #F0F4FF;
+  --primary: #00C2FF;
+  --primary-foreground: #050D1A;
+  --secondary: #7A8FA6;
+  --secondary-foreground: #F0F4FF;
+  --muted: #0A1628;
+  --muted-foreground: #7A8FA6;
+  --accent: #00C2FF;
+  --accent-foreground: #050D1A;
+  --destructive: #FF4444;
+  --destructive-foreground: #F0F4FF;
+  --border: rgba(0, 194, 255, 0.12);
+  --input: rgba(0, 194, 255, 0.12);
+  --input-background: #0A1628;
+  --switch-background: #7A8FA6;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #00C2FF;
+  --radius: 0.625rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-[#050D1A] text-[#F0F4FF];
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+}
+
+/* Glassmorphism Card Base */
+.glass-card {
+  background: var(--card-surface);
+  border: 1px solid var(--border-default);
+  backdrop-filter: blur(16px);
+}
+
+.glass-card-hover {
+  transition: all 200ms ease;
+}
+
+.glass-card-hover:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--glow-shadow);
+  transform: translateY(-2px);
+}
+
+/* Gradient CTA Button */
+.gradient-cta {
+  background: linear-gradient(135deg, var(--gradient-cta-start), var(--gradient-cta-end));
+  transition: all 200ms ease;
+}
+
+.gradient-cta:hover {
+  box-shadow: 0 0 24px rgba(0, 194, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Monospace DID text styling */
+.did-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-cyan);
+  letter-spacing: 0.04em;
+}
+
+/* Pulse animation for status indicators */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+}
+
+.pulse-dot {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+/* Float animation for empty states */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 3D card flip container */
+.flip-container {
+  perspective: 1000px;
+}
+
+.flip-card {
+  transform-style: preserve-3d;
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flip-card.flipped {
+  transform: rotateY(180deg);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 194, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 194, 255, 0.4);
+}

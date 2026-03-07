@@ -1,17 +1,8 @@
 # Sovereign — Own Your Identity
 
-A Self-Sovereign Identity (SSI) wallet platform UI built with React + TypeScript + Vite + Tailwind CSS.
+A merged project combining the **VaultID Marketing Website** and **VaultID Dashboard** Figma Make designs into a single React application.
 
-## Features
-
-- **Landing Page** — Marketing site with ZKP interactive demo
-- **Overview Dashboard** — KPI stats, proof request handling, activity feed
-- **Credential Vault** — Full credential management with ZKP field toggling
-- **DID Identity** — DID document viewer, key management
-- **Issuer Portal** — Bulk issuance, analytics, credential templates
-- **Share Modal** — 3-step credential sharing with QR/NFC/deep-link
-
-## Getting Started
+## Running the project
 
 ```bash
 npm install
@@ -20,43 +11,66 @@ npm run dev
 
 Open http://localhost:5173
 
+## Routes
+
+| Path | Description |
+|---|---|
+| `/` | Marketing landing page (Figma Make: VaultID Marketing Website Design) |
+| `/dashboard` | Dashboard overview |
+| `/dashboard/vault` | Credential Vault |
+| `/dashboard/identity` | DID Identity |
+| `/dashboard/issuer` | Issuer Portal |
+
 ## Tech Stack
 
 - React 18 + TypeScript
-- React Router v6
-- Tailwind CSS v3
-- Recharts (area charts)
-- Lucide React (icons)
-
-## Design System
-
-| Token       | Value     |
-|-------------|-----------|
-| Background  | `#050D1A` |
-| Surface     | `#0A1628` |
-| Cyan Accent | `#00C2FF` |
-| Green       | `#00FF88` |
-| Purple      | `#7B2FFF` |
-| Font Display| Space Grotesk |
-| Font Body   | Inter     |
-| Font Mono   | JetBrains Mono |
+- React Router v7
+- Tailwind CSS v4 (`@tailwindcss/vite`)
+- `motion/react` (Framer Motion v12)
+- Lucide React icons
+- Recharts
+- All Radix UI primitives (shadcn/ui)
 
 ## Project Structure
 
 ```
 src/
-├── pages/
-│   ├── LandingPage.tsx       # Marketing site
-│   ├── OverviewPage.tsx      # Dashboard home
-│   ├── CredentialVaultPage.tsx
-│   ├── DIDIdentityPage.tsx
-│   └── IssuerPortalPage.tsx
-├── components/
-│   ├── layout/
-│   │   └── DashboardLayout.tsx  # Sidebar + TopBar
-│   └── modals/
-│       └── ShareModal.tsx
-├── data/
-│   └── mock.ts               # Mock data
-└── index.css                 # Global styles
+├── app/
+│   ├── components/
+│   │   ├── credentials/     # Dashboard credential components
+│   │   ├── layout/          # Sidebar, TopCommandBar, DashboardLayout
+│   │   ├── marketing/       # All landing page section components
+│   │   ├── modals/          # Share credential modal
+│   │   └── ui/              # shadcn/ui base components
+│   ├── data/
+│   │   └── mockData.ts      # Mock credentials, activities, proof requests
+│   ├── pages/
+│   │   ├── LandingPage.tsx         # Marketing site wrapper
+│   │   ├── OverviewPage.tsx        # Dashboard home
+│   │   ├── CredentialVaultPage.tsx
+│   │   ├── DIDIdentityPage.tsx
+│   │   └── IssuerPortalPage.tsx
+│   ├── App.tsx
+│   └── routes.tsx
+└── styles/
+    ├── fonts.css
+    ├── tailwind.css
+    ├── theme.css
+    └── index.css
 ```
+
+## Design System
+
+| Token | Value |
+|---|---|
+| Page Background | `#050D1A` |
+| Sidebar | `#080F1E` |
+| Card Surface | `#0A1628` |
+| Accent Cyan | `#00C2FF` |
+| Success Green | `#00FF88` |
+| Warning Amber | `#F5A623` |
+| Danger Red | `#FF4444` |
+| CTA Gradient | `#00C2FF → #7B2FFF` |
+| Font Display | Space Grotesk |
+| Font Body | Inter |
+| Font Mono | JetBrains Mono |
