@@ -1,0 +1,30 @@
+{
+  "name": "sovereign-backend",
+  "version": "1.0.0",
+  "description": "Sovereign SSI Platform — Node.js + Express Backend. Covers client-server architecture, HTTP module, Express routing, file handling, and exception handling as per course curriculum Lectures 1-24.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start":       "node server.js",
+    "dev":         "nodemon server.js",
+    "http-demo":   "node http-demo.js",
+    "file-demo":   "node file-handling-demo.js",
+    "seed":        "node utils/seedData.js"
+  },
+  "dependencies": {
+    "express":  "^4.19.2",
+    "cors":     "^2.8.5",
+    "morgan":   "^1.10.0",
+    "uuid":     "^9.0.1",
+    "dotenv":   "^16.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["SSI", "DID", "verifiable-credentials", "nodejs", "express", "sovereign"],
+  "author": "Sovereign Project",
+  "license": "MIT"
+}

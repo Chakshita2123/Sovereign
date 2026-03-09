@@ -1,0 +1,82 @@
+[
+  {
+    "id": "req-001",
+    "verifierName": "Infosys HR Onboarding Portal",
+    "verifierLogo": "💼",
+    "verifierDID": "did:indy:sovrin:INFYverifier9Qx4k2mLPv3r",
+    "requestedFields": [
+      {
+        "field": "Degree",
+        "zkpPredicate": null
+      },
+      {
+        "field": "Specialisation",
+        "zkpPredicate": null
+      },
+      {
+        "field": "CGPA",
+        "zkpPredicate": "CGPA ≥ 7.0"
+      },
+      {
+        "field": "Graduation Year",
+        "zkpPredicate": null
+      }
+    ],
+    "purpose": "Employee background verification for offer letter processing",
+    "expiresAt": "2026-03-08T18:00:00Z",
+    "createdAt": "2026-03-07T10:00:00Z",
+    "status": "pending"
+  },
+  {
+    "id": "req-002",
+    "verifierName": "HDFC Bank — Digital KYC",
+    "verifierLogo": "🏦",
+    "verifierDID": "did:indy:sovrin:HDFCbank4Kp2n4xQm5vLh3T",
+    "requestedFields": [
+      {
+        "field": "Full Name",
+        "zkpPredicate": null
+      },
+      {
+        "field": "Date of Birth",
+        "zkpPredicate": "Age ≥ 21"
+      },
+      {
+        "field": "Address",
+        "zkpPredicate": null
+      },
+      {
+        "field": "PAN Number",
+        "zkpPredicate": null
+      }
+    ],
+    "purpose": "Savings account opening — RBI KYC compliance",
+    "expiresAt": "2026-03-08T23:59:00Z",
+    "createdAt": "2026-03-07T08:00:00Z",
+    "status": "pending"
+  },
+  {
+    "id": "req-003",
+    "verifierName": "Ola Cabs — Driver Verification",
+    "verifierLogo": "🚗",
+    "verifierDID": "did:indy:sovrin:OLAverify5Hy5n9xQm2vLpWk",
+    "requestedFields": [
+      {
+        "field": "DL Number",
+        "zkpPredicate": null
+      },
+      {
+        "field": "DL Class",
+        "zkpPredicate": null
+      },
+      {
+        "field": "Date of Birth",
+        "zkpPredicate": "Age ≥ 18"
+      }
+    ],
+    "purpose": "Driver onboarding — Transport Aggregator compliance",
+    "expiresAt": "2026-03-09T12:00:00Z",
+    "createdAt": "2026-03-07T07:30:00Z",
+    "status": "pending"
+  }
+]

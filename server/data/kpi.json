@@ -1,0 +1,11 @@
+{
+  "totalCredentials": 8,
+  "totalCredentialsTrend": 8.3,
+  "activeVerifications": 23,
+  "activeVerificationsTrend": 12.5,
+  "credentialsExpiring": 1,
+  "credentialsExpiringTrend": -25,
+  "securityScore": 91,
+  "userDID": "did:indy:sovrin:AaravSharma8Ps2k3nQ7vLh1TzW5",
+  "userName": "Aarav Sharma"
+}

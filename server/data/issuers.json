@@ -1,0 +1,303 @@
+[
+  {
+    "id": "iss-001",
+    "name": "Indian Institute of Technology, Delhi",
+    "shortName": "IIT Delhi",
+    "did": "did:indy:sovrin:IITD8Ps2w3kJTHjqUDf8nK9nR7",
+    "category": "University",
+    "country": "India",
+    "city": "New Delhi",
+    "logo": "🎓",
+    "verified": true,
+    "onboardedAt": "2024-01-10T09:00:00Z",
+    "stats": {
+      "totalIssued": 18432,
+      "revokedToday": 3,
+      "pendingDelivery": 12,
+      "activeTemplates": 6,
+      "credentialHealth": 99.1
+    },
+    "templates": [
+      "B.Tech Degree",
+      "M.Tech Degree",
+      "Ph.D Certificate",
+      "Student ID",
+      "Bonafide Certificate",
+      "Migration Certificate"
+    ],
+    "recentIssuances": [
+      {
+        "id": "iss-IITD-001",
+        "subjectDID": "did:indy:sovrin:8Qx2k3mL...",
+        "template": "B.Tech Degree",
+        "status": "delivered",
+        "timestamp": "2026-03-07T09:15:00Z"
+      },
+      {
+        "id": "iss-IITD-002",
+        "subjectDID": "did:indy:sovrin:3Pr7n4xM...",
+        "template": "Bonafide Certificate",
+        "status": "delivered",
+        "timestamp": "2026-03-07T08:45:00Z"
+      },
+      {
+        "id": "iss-IITD-003",
+        "subjectDID": "did:indy:sovrin:9Ty5m8qN...",
+        "template": "Migration Certificate",
+        "status": "pending",
+        "timestamp": "2026-03-07T08:30:00Z"
+      }
+    ],
+    "bulkJobs": [
+      {
+        "id": "job-IITD-001",
+        "name": "Batch 2024 Convocation Degrees",
+        "progress": 92,
+        "total": 1240,
+        "success": 1140,
+        "failed": 4,
+        "eta": "8 min",
+        "status": "in_progress"
+      }
+    ],
+    "chartData": [
+      {
+        "date": "Jan 6",
+        "issued": 210,
+        "revoked": 2
+      },
+      {
+        "date": "Jan 13",
+        "issued": 234,
+        "revoked": 1
+      },
+      {
+        "date": "Jan 20",
+        "issued": 198,
+        "revoked": 4
+      },
+      {
+        "date": "Jan 27",
+        "issued": 267,
+        "revoked": 0
+      },
+      {
+        "date": "Feb 3",
+        "issued": 312,
+        "revoked": 3
+      },
+      {
+        "date": "Feb 10",
+        "issued": 289,
+        "revoked": 2
+      },
+      {
+        "date": "Feb 17",
+        "issued": 340,
+        "revoked": 1
+      },
+      {
+        "date": "Feb 24",
+        "issued": 401,
+        "revoked": 5
+      },
+      {
+        "date": "Mar 3",
+        "issued": 378,
+        "revoked": 3
+      }
+    ]
+  },
+  {
+    "id": "iss-002",
+    "name": "UIDAI — Unique Identification Authority of India",
+    "shortName": "UIDAI",
+    "did": "did:indy:sovrin:UIDAI9k4mP2x3nQ7vLh1TzW5aK",
+    "category": "Government",
+    "country": "India",
+    "city": "New Delhi",
+    "logo": "🇮🇳",
+    "verified": true,
+    "onboardedAt": "2023-11-01T09:00:00Z",
+    "stats": {
+      "totalIssued": 1247890,
+      "revokedToday": 2341,
+      "pendingDelivery": 8920,
+      "activeTemplates": 2,
+      "credentialHealth": 97.3
+    },
+    "templates": [
+      "Aadhaar eKYC VC",
+      "Aadhaar Address Proof VC"
+    ],
+    "recentIssuances": [
+      {
+        "id": "iss-UID-001",
+        "subjectDID": "did:indy:sovrin:4Kx9r2vP...",
+        "template": "Aadhaar eKYC VC",
+        "status": "delivered",
+        "timestamp": "2026-03-07T09:00:00Z"
+      }
+    ],
+    "bulkJobs": [
+      {
+        "id": "job-UIDAI-001",
+        "name": "DigiLocker Migration — Q1 2026",
+        "progress": 45,
+        "total": 50000,
+        "success": 22500,
+        "failed": 120,
+        "eta": "3.2 hrs",
+        "status": "in_progress"
+      }
+    ],
+    "chartData": [
+      {
+        "date": "Jan 6",
+        "issued": 12000,
+        "revoked": 340
+      },
+      {
+        "date": "Jan 13",
+        "issued": 14500,
+        "revoked": 290
+      },
+      {
+        "date": "Jan 20",
+        "issued": 13200,
+        "revoked": 410
+      },
+      {
+        "date": "Jan 27",
+        "issued": 15600,
+        "revoked": 380
+      },
+      {
+        "date": "Feb 3",
+        "issued": 16100,
+        "revoked": 320
+      },
+      {
+        "date": "Feb 10",
+        "issued": 17400,
+        "revoked": 450
+      },
+      {
+        "date": "Feb 17",
+        "issued": 18900,
+        "revoked": 510
+      },
+      {
+        "date": "Feb 24",
+        "issued": 20100,
+        "revoked": 480
+      },
+      {
+        "date": "Mar 3",
+        "issued": 21300,
+        "revoked": 520
+      }
+    ]
+  },
+  {
+    "id": "iss-003",
+    "name": "Infosys Limited",
+    "shortName": "Infosys",
+    "did": "did:indy:sovrin:INFY9Qx4k2mLPv3rNh8TzYcW",
+    "category": "Employer",
+    "country": "India",
+    "city": "Bengaluru",
+    "logo": "💼",
+    "verified": true,
+    "onboardedAt": "2024-02-20T09:00:00Z",
+    "stats": {
+      "totalIssued": 34500,
+      "revokedToday": 56,
+      "pendingDelivery": 234,
+      "activeTemplates": 5,
+      "credentialHealth": 96.8
+    },
+    "templates": [
+      "Employment Verification",
+      "Experience Letter",
+      "Background Check Clearance",
+      "Training Certification",
+      "Access Badge"
+    ],
+    "recentIssuances": [
+      {
+        "id": "iss-INFY-001",
+        "subjectDID": "did:indy:sovrin:7Lp3s6wQ...",
+        "template": "Employment Verification",
+        "status": "delivered",
+        "timestamp": "2026-03-07T08:00:00Z"
+      },
+      {
+        "id": "iss-INFY-002",
+        "subjectDID": "did:indy:sovrin:2Mx8t4yR...",
+        "template": "Access Badge",
+        "status": "failed",
+        "timestamp": "2026-03-07T07:45:00Z"
+      }
+    ],
+    "bulkJobs": [
+      {
+        "id": "job-INFY-001",
+        "name": "FY2025 Annual Employment Refresh",
+        "progress": 67,
+        "total": 3400,
+        "success": 2278,
+        "failed": 8,
+        "eta": "45 min",
+        "status": "in_progress"
+      }
+    ],
+    "chartData": [
+      {
+        "date": "Jan 6",
+        "issued": 280,
+        "revoked": 12
+      },
+      {
+        "date": "Jan 13",
+        "issued": 310,
+        "revoked": 8
+      },
+      {
+        "date": "Jan 20",
+        "issued": 295,
+        "revoked": 15
+      },
+      {
+        "date": "Jan 27",
+        "issued": 340,
+        "revoked": 6
+      },
+      {
+        "date": "Feb 3",
+        "issued": 390,
+        "revoked": 18
+      },
+      {
+        "date": "Feb 10",
+        "issued": 425,
+        "revoked": 22
+      },
+      {
+        "date": "Feb 17",
+        "issued": 460,
+        "revoked": 14
+      },
+      {
+        "date": "Feb 24",
+        "issued": 510,
+        "revoked": 19
+      },
+      {
+        "date": "Mar 3",
+        "issued": 490,
+        "revoked": 21
+      }
+    ]
+  }
+]

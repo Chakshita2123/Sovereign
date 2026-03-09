@@ -1,0 +1,46 @@
+[
+  {
+    "id": "did:indy:sovrin:AaravSharma8Ps2k3nQ7vLh1TzW5",
+    "controller": "Aarav Sharma",
+    "created": "2024-01-15T10:30:00Z",
+    "updated": "2024-02-10T14:22:00Z",
+    "status": "active",
+    "verificationMethod": [
+      {
+        "id": "did:indy:sovrin:AaravSharma8Ps2k3nQ7vLh1TzW5#keys-1",
+        "type": "Ed25519VerificationKey2020",
+        "publicKeyMultibase": "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+      }
+    ],
+    "service": [
+      {
+        "id": "did:indy:sovrin:AaravSharma8Ps2k3nQ7vLh1TzW5#didcomm",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": "https://mediator.sovereign.app/msg"
+      }
+    ],
+    "keyHistory": [
+      {
+        "keyId": "#keys-0",
+        "rotatedAt": "2024-02-10T14:22:00Z",
+        "reason": "Scheduled rotation"
+      }
+    ]
+  },
+  {
+    "id": "did:indy:sovrin:PriyaVenkat5BzCb3h8WxNJVnT3p",
+    "controller": "Dr. Priya Venkataraman",
+    "created": "2023-09-01T08:00:00Z",
+    "updated": "2023-09-01T08:00:00Z",
+    "status": "active",
+    "verificationMethod": [
+      {
+        "id": "did:indy:sovrin:PriyaVenkat5BzCb3h8WxNJVnT3p#keys-1",
+        "type": "Ed25519VerificationKey2020",
+        "publicKeyMultibase": "z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
+      }
+    ],
+    "service": [],
+    "keyHistory": []
+  }
+]

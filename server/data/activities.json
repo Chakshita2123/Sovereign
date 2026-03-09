@@ -1,0 +1,82 @@
+[
+  {
+    "id": "act-001",
+    "type": "received",
+    "title": "New credential received",
+    "description": "Health Insurance Card VC from HDFC ERGO Health Insurance",
+    "timestamp": "2026-03-07T09:15:00Z",
+    "actor": "HDFC ERGO"
+  },
+  {
+    "id": "act-002",
+    "type": "shared",
+    "title": "Credential shared via ZKP",
+    "description": "IIT Delhi B.Tech Degree shared with Infosys HR Portal",
+    "timestamp": "2026-03-06T14:22:00Z",
+    "actor": "Infosys HR"
+  },
+  {
+    "id": "act-003",
+    "type": "expiring",
+    "title": "Credential expiring soon",
+    "description": "Medical Registration Certificate expires in 18 days",
+    "timestamp": "2026-03-06T09:00:00Z",
+    "actor": "System"
+  },
+  {
+    "id": "act-004",
+    "type": "shared",
+    "title": "Age proof presented",
+    "description": "ZKP predicate (Age ≥ 18) shared with BookMyShow — no DOB revealed",
+    "timestamp": "2026-03-05T19:45:00Z",
+    "actor": "BookMyShow"
+  },
+  {
+    "id": "act-005",
+    "type": "received",
+    "title": "Aadhaar eKYC VC received",
+    "description": "Aadhaar Identity VC issued by UIDAI via DigiLocker",
+    "timestamp": "2026-03-04T11:15:00Z",
+    "actor": "UIDAI"
+  },
+  {
+    "id": "act-006",
+    "type": "rotated",
+    "title": "DID key rotation completed",
+    "description": "Verification key #keys-0 rotated. New key #keys-1 active.",
+    "timestamp": "2026-03-03T16:30:00Z",
+    "actor": "Self"
+  },
+  {
+    "id": "act-007",
+    "type": "shared",
+    "title": "Selective disclosure — KYC",
+    "description": "Name + DOB (ZKP age≥21) shared with HDFC Bank — 2 of 6 fields only",
+    "timestamp": "2026-03-02T10:12:00Z",
+    "actor": "HDFC Bank"
+  },
+  {
+    "id": "act-008",
+    "type": "received",
+    "title": "CBSE XII Marksheet VC received",
+    "description": "Class XII marks VC issued via DigiLocker — CBSE Board",
+    "timestamp": "2026-03-01T13:40:00Z",
+    "actor": "CBSE"
+  },
+  {
+    "id": "act-009",
+    "type": "shared",
+    "title": "Employment proof shared",
+    "description": "Employment VC (salary ZKP: CTC ≥ ₹8L) shared with SBI Home Loan",
+    "timestamp": "2026-02-28T15:00:00Z",
+    "actor": "SBI"
+  },
+  {
+    "id": "act-010",
+    "type": "revoked",
+    "title": "Old student ID revoked",
+    "description": "IIT Delhi Student ID VC revoked after graduation",
+    "timestamp": "2026-02-25T08:30:00Z",
+    "actor": "IIT Delhi"
+  }
+]

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sovereign API — Backend Server</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      background: #050D1A; color: #F0F4FF; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 2rem;
+    }
+    .card {
+      background: rgba(10,22,40,0.9); border: 1px solid rgba(0,194,255,0.2);
+      border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 100%;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .grad { background: linear-gradient(135deg,#00C2FF,#7B2FFF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    p { color: #7A8FA6; margin-bottom: 1.5rem; }
+    .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700;
+      background: rgba(0,255,136,0.1); border:1px solid #00FF88; color:#00FF88; letter-spacing:.08em; }
+    table { width:100%; border-collapse:collapse; margin-top:1rem; }
+    th { text-align:left; color:#7A8FA6; font-size:11px; text-transform:uppercase; letter-spacing:.08em; padding:8px 12px; border-bottom:1px solid rgba(0,194,255,0.1); }
+    td { padding:8px 12px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .method { font-weight:700; }
+    .get { color:#00FF88; } .post { color:#00C2FF; } .patch { color:#F5A623; } .del { color:#FF4444; }
+    .path { color:#A8D8FF; }
+    code { background:rgba(0,194,255,0.06); padding:2px 8px; border-radius:4px; font-size:12px; color:#00C2FF; }
+    .note { margin-top:1.5rem; padding:1rem; background:rgba(123,47,255,0.06); border:1px solid rgba(123,47,255,0.2); border-radius:8px; font-size:12px; color:#7A8FA6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span style="font-size:1.5rem">🛡️</span>
+      <h1 class="grad">Sovereign Backend API</h1>
+      <span class="badge">● RUNNING</span>
+    </div>
+    <p>Node.js + Express server for the Sovereign Self-Sovereign Identity platform. This static page is served by <code>express.static()</code> — demonstrating Lecture 21-24.</p>
+
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/health</td><td>Server health check</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/credentials</td><td>List all credentials</td></tr>
+        <tr><td><span class="method post">POST</span></td><td class="path">/api/credentials</td><td>Create credential</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/credentials/:id</td><td>Get credential by ID</td></tr>
+        <tr><td><span class="method patch">PATCH</span></td><td class="path">/api/credentials/:id</td><td>Update credential</td></tr>
+        <tr><td><span class="method del">DELETE</span></td><td class="path">/api/credentials/:id</td><td>Revoke credential</td></tr>
+        <tr><td><span class="method post">POST</span></td><td class="path">/api/credentials/:id/zkp</td><td>Generate ZKP proof</td></tr>
+        <tr><td><span class="method post">POST</span></td><td class="path">/api/credentials/:id/share</td><td>Generate share token</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/identity/:did</td><td>Resolve DID document</td></tr>
+        <tr><td><span class="method post">POST</span></td><td class="path">/api/identity/create</td><td>Create new DID</td></tr>
+        <tr><td><span class="method patch">PATCH</span></td><td class="path">/api/identity/:did/rotate</td><td>Rotate keys</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/issuers</td><td>List issuers</td></tr>
+        <tr><td><span class="method post">POST</span></td><td class="path">/api/issuers/:id/bulk</td><td>Bulk issue credentials</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/issuers/:id/export</td><td>Download credentials JSON</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/activity</td><td>Activity feed</td></tr>
+        <tr><td><span class="method get">GET</span></td><td class="path">/api/activity/proof-requests</td><td>Pending proof requests</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong style="color:#7B2FFF">📚 Course Coverage:</strong><br/>
+      This backend covers Lectures 1-24: Client-Server Architecture (1-4) · File Handling/fs module (5-8) ·
+      Node.js event loop & advantages (9-12) · HTTP module, endpoints, NPM, modules (13-16) ·
+      Express-JS framework (17-20) · Static files, routing, response methods, exceptions (21-24)
+    </div>
+  </div>
+</body>
+</html>
