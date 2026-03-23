@@ -104,26 +104,6 @@ export function ProblemSection() {
                     top: company.position.y
                   }}
                 >
-                  {/* Connection line */}
-                  <svg className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                       style={{ 
-                         width: '100vw', 
-                         height: '100vh',
-                         transform: 'translate(-50%, -50%)'
-                       }}>
-                    <motion.line
-                      x1="50%"
-                      y1="50%"
-                      x2="50vw"
-                      y2="50vh"
-                      stroke={isBreached ? '#F5A623' : 'rgba(0, 194, 255, 0.2)'}
-                      strokeWidth="2"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: breached > 0.1 ? 1 : 0 }}
-                      transition={{ duration: 0.8, delay: i * 0.1 }}
-                    />
-                  </svg>
-
                   {/* Company node */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}

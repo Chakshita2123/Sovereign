@@ -124,9 +124,9 @@ export function HeroSection() {
                   {/* Credential cards */}
                   <div className="space-y-4 flex-1">
                     {[
-                      { title: 'Passport', status: 'Verified', color: '#00FF88' },
-                      { title: 'Driver License', status: 'Verified', color: '#00FF88' },
-                      { title: 'University Degree', status: 'Pending', color: '#F5A623' }
+                      { title: 'Passport', status: 'Verified', color: '#00FF88', hash: 'h3x9k2' },
+                      { title: 'Driver License', status: 'Verified', color: '#00FF88', hash: 'p7m4wq' },
+                      { title: 'University Degree', status: 'Pending', color: '#F5A623', hash: 'r1n6yt' }
                     ].map((credential, i) => (
                       <motion.div
                         key={i}
@@ -144,7 +144,7 @@ export function HeroSection() {
                           <div>
                             <div className="font-semibold text-sm">{credential.title}</div>
                             <div className="text-xs text-[#7A8FA6] font-mono mt-1">
-                              vc:z6Mk{Math.random().toString(36).substring(2, 8)}...
+                              vc:z6Mk{credential.hash}...
                             </div>
                           </div>
                           <div className="flex items-center gap-2">

@@ -1,15 +1,20 @@
 import { useNavigate } from 'react-router';
-import { HeroSection } from '../components/marketing/hero-section';
-import { ProblemSection } from '../components/marketing/problem-section';
-import { HowItWorksSection } from '../components/marketing/how-it-works-section';
-import { BentoFeatures } from '../components/marketing/bento-features';
-import { TrustSecuritySection } from '../components/marketing/trust-security-section';
-import { InteractiveWallet } from '../components/marketing/interactive-wallet';
-import { StatsSection } from '../components/marketing/stats-section';
-import { CTASection } from '../components/marketing/cta-section';
-import { Footer } from '../components/marketing/footer';
 import { Shield, ArrowRight } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+
+// ─── LAZY-LOADED MARKETING SECTIONS ──────────────────────────────────────────
+// Each section is heavy (8-13KB, complex animations with motion/react).
+// Lazy loading defers parsing/rendering until the section scrolls into view,
+// dramatically reducing initial bundle size and eliminating first-paint lag.
+const HeroSection = lazy(() => import('../components/marketing/hero-section').then(m => ({ default: m.HeroSection })));
+const ProblemSection = lazy(() => import('../components/marketing/problem-section').then(m => ({ default: m.ProblemSection })));
+const HowItWorksSection = lazy(() => import('../components/marketing/how-it-works-section').then(m => ({ default: m.HowItWorksSection })));
+const BentoFeatures = lazy(() => import('../components/marketing/bento-features').then(m => ({ default: m.BentoFeatures })));
+const TrustSecuritySection = lazy(() => import('../components/marketing/trust-security-section').then(m => ({ default: m.TrustSecuritySection })));
+const InteractiveWallet = lazy(() => import('../components/marketing/interactive-wallet').then(m => ({ default: m.InteractiveWallet })));
+const StatsSection = lazy(() => import('../components/marketing/stats-section').then(m => ({ default: m.StatsSection })));
+const CTASection = lazy(() => import('../components/marketing/cta-section').then(m => ({ default: m.CTASection })));
+const Footer = lazy(() => import('../components/marketing/footer').then(m => ({ default: m.Footer })));
 
 function MarketingNav() {
   const navigate = useNavigate();
@@ -17,7 +22,7 @@ function MarketingNav() {
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', fn);
+    window.addEventListener('scroll', fn, { passive: true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
@@ -86,11 +91,14 @@ function MarketingNav() {
   );
 }
 
+// Minimal loading placeholder — invisible, prevents layout shift
+function SectionFallback() {
+  return <div className="min-h-[200px]" />;
+}
+
 export function LandingPage() {
   const navigate = useNavigate();
 
-  // Intercept CTA clicks that reference '#' or the vault creation
-  // We render the marketing sections as-is and overlay a nav
   return (
     <div
       className="min-h-screen"
@@ -100,13 +108,27 @@ export function LandingPage() {
 
       {/* Add padding-top to push hero content below fixed nav */}
       <div className="pt-0">
-        <HeroSection />
-        <ProblemSection />
-        <HowItWorksSection />
-        <BentoFeatures />
-        <TrustSecuritySection />
-        <InteractiveWallet />
-        <StatsSection />
+        <Suspense fallback={<SectionFallback />}>
+          <HeroSection />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <ProblemSection />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <HowItWorksSection />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <BentoFeatures />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <TrustSecuritySection />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <InteractiveWallet />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <StatsSection />
+        </Suspense>
 
         {/* Custom CTA section that bridges to the dashboard */}
         <section className="relative py-32 overflow-hidden">
@@ -184,7 +206,9 @@ export function LandingPage() {
           </div>
         </section>
 
-        <Footer />
+        <Suspense fallback={<SectionFallback />}>
+          <Footer />
+        </Suspense>
       </div>
     </div>
   );
