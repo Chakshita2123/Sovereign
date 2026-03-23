@@ -1,15 +1,19 @@
 
-const express = require('express');  // NPM: installed via `npm install express`
-const cors    = require('cors');     // NPM: Cross-Origin Resource Sharing
-const morgan  = require('morgan');   // NPM: HTTP request logger
-const path    = require('path');     // Built-in: file path utilities
-const fs      = require('fs');       // Built-in: file system
+const express     = require('express');      // NPM: installed via `npm install express`
+const cors        = require('cors');         // NPM: Cross-Origin Resource Sharing
+const morgan      = require('morgan');       // NPM: HTTP request logger
+const path        = require('path');         // Built-in: file path utilities
+const fs          = require('fs');           // Built-in: file system
+const helmet      = require('helmet');       // NPM: Security headers (Lectures 25-28)
+const compression = require('compression');  // NPM: Gzip response compression
 
 // ─── IMPORTING OUR CUSTOM MODULES ────────────────────────────────────────────
 // Each of these files uses module.exports — demonstrating file dependency
 const config     = require('./config');               // config/index.js
 const logger     = require('./middleware/logger');     // custom logger middleware
 const { notFound, errorHandler } = require('./middleware/errorHandler');
+const requestId      = require('./middleware/requestId');     // UUID tracing
+const { globalLimiter } = require('./middleware/rateLimiter'); // rate limiting
 
 // ─── IMPORTING ROUTE MODULES ──────────────────────────────────────────────────
 // express.Router() instances — each handles a namespace of routes
@@ -30,6 +34,25 @@ if (!fs.existsSync(config.DATA_DIR)) {
 const app = express();
 
 
+// ── 0. SECURITY HEADERS (Helmet) ──────────────────────────────────────────────
+// Helmet sets 11 security-related HTTP headers in one line:
+//   X-Content-Type-Options   — prevents MIME-type sniffing
+//   X-Frame-Options          — clickjacking protection
+//   Strict-Transport-Security — forces HTTPS
+//   Content-Security-Policy  — prevents XSS, injection attacks
+//   X-DNS-Prefetch-Control   — controls DNS prefetching
+//   X-Download-Options       — prevents IE from executing downloads
+//   X-Permitted-Cross-Domain — restricts Adobe Flash/PDF cross-domain
+//   Referrer-Policy          — controls Referer header leakage
+//   X-XSS-Protection         — legacy XSS filter (modern CSP is better)
+// MUST be the very first middleware — headers must be set before any response
+app.use(helmet());
+
+// ── 0.5 REQUEST ID TRACING ────────────────────────────────────────────────────
+// Attaches a UUID to every request (req.id) and sends it as X-Request-Id header
+// Enables end-to-end tracing: frontend error → backend log → exact request
+app.use(requestId);
+
 // ── 1. CORS Middleware ────────────────────────────────────────────────────────
 // Allows the React frontend (localhost:5173) to call this API.
 // Without this, browsers block cross-origin requests.
@@ -45,6 +68,15 @@ app.use(cors({
 // express.urlencoded()     — parses HTML form bodies → req.body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ── 2.5 COMPRESSION ──────────────────────────────────────────────────────────
+// Gzip all responses automatically — reduces payload size by ~70%
+// Must come after body parsers, before route handlers
+app.use(compression());
+
+// ── 2.6 RATE LIMITING ─────────────────────────────────────────────────────────
+// Global: 100 requests per 15 min per IP — protects against DDoS
+app.use(globalLimiter);
 
 // ── 3. Request Logger ────────────────────────────────────────────────────────
 // morgan: standard logging (combined format)
@@ -125,21 +157,21 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║            SOVEREIGN — SSI Platform Backend                 ║');
-  console.log('║            Node.js + Express   Lectures 1-24                ║');
+  console.log('║            Node.js + Express   Lectures 1-28                ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log(`║  Server  : http://${config.HOST}:${config.PORT}                              ║`);
   console.log(`║  Env     : ${config.NODE_ENV.padEnd(51)}║`);
   console.log('╠══════════════════════════════════════════════════════════════╣');
-  console.log('║  API Endpoints                                               ║');
+  console.log('║  Middleware (Lectures 25-28)                                ║');
+  console.log('║  ✔ Helmet security headers    ✔ Gzip compression           ║');
+  console.log('║  ✔ Rate limiting (100/15min)  ✔ Request ID tracing         ║');
+  console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  API Endpoints                                             ║');
   console.log(`║  GET  /api/health                (health check)             ║`);
   console.log(`║  *    /api/credentials           (credential CRUD)          ║`);
   console.log(`║  *    /api/identity              (DID management)           ║`);
   console.log(`║  *    /api/issuers               (issuer portal)            ║`);
   console.log(`║  *    /api/activity              (activity feed)            ║`);
-  console.log('╠══════════════════════════════════════════════════════════════╣');
-  console.log('║  Demo files                                                  ║');
-  console.log('║  node http-demo.js       (raw HTTP module, port 3002)        ║');
-  console.log('║  node file-handling-demo.js  (fs module demo)               ║');
   console.log('╚══════════════════════════════════════════════════════════════╝');
   console.log('');
 });
