@@ -43,7 +43,7 @@ function MarketingNav() {
             className="text-lg font-bold text-[#F0F4FF]"
             style={{ fontFamily: 'var(--font-display, var(--font-heading))' }}
           >
-            VaultID
+            Sovereign
           </span>
         </div>
 

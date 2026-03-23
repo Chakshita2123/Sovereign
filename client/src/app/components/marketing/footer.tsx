@@ -42,7 +42,7 @@ export function Footer() {
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-                VaultID
+                Sovereign
               </span>
             </motion.div>
 
@@ -99,7 +99,7 @@ export function Footer() {
           {/* Copyright */}
           <div className="mt-8 pt-8 border-t border-[rgba(0,194,255,0.1)] text-center">
             <p className="text-sm text-[#7A8FA6]">
-              © 2026 VaultID. Self-sovereign identity for everyone.
+              © 2026 Sovereign. Self-sovereign identity for everyone.
             </p>
           </div>
         </div>

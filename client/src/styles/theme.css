@@ -1,7 +1,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* VaultID Color System */
+  /* Sovereign Color System */
   --page-bg: #050D1A;
   --sidebar-bg: #080F1E;
   --card-surface: #0A1628;

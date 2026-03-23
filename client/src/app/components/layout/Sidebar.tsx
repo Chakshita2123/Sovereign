@@ -20,7 +20,7 @@ export function Sidebar() {
             <Vault className="w-5 h-5 text-white" />
           </div>
           <span className="text-lg font-bold text-[#F0F4FF]" style={{ fontFamily: 'var(--font-heading)' }}>
-            VaultID
+            Sovereign
           </span>
         </div>
       </div>

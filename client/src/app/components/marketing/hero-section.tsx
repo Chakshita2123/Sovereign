@@ -65,7 +65,7 @@ export function HeroSection() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="did:vault:z6Mk..."
+                  placeholder="did:sovereign:z6Mk..."
                   className="w-full bg-[rgba(10,22,40,0.8)] border border-[rgba(0,194,255,0.15)] rounded-lg px-6 py-4 text-[#F0F4FF] font-mono text-sm backdrop-blur-xl focus:border-[rgba(0,194,255,0.5)] focus:outline-none transition-all"
                   style={{ boxShadow: '0 0 40px rgba(0, 194, 255, 0.06) inset' }}
                 />
@@ -116,7 +116,7 @@ export function HeroSection() {
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-2">
                       <Shield className="w-6 h-6 text-[#00C2FF]" />
-                      <span className="font-semibold">VaultID</span>
+                      <span className="font-semibold">Sovereign</span>
                     </div>
                     <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse" />
                   </div>

@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 export function CTASection() {
   const [didGeneration, setDidGeneration] = useState('');
-  const fullDID = 'did:vault:z6MkhaXgW2jK8yP5x3k9L2mN4vB7qR8sT1uC3dE5fG7hI9j';
+  const fullDID = 'did:sovereign:z6MkhaXgW2jK8yP5x3k9L2mN4vB7qR8sT1uC3dE5fG7hI9j';
 
   useEffect(() => {
     let currentIndex = 0;

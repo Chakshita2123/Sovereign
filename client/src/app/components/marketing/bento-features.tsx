@@ -257,7 +257,7 @@ function DIDCreationFlow() {
       <div className="mt-6 p-3 rounded-lg bg-[rgba(15,30,53,0.6)] border border-[rgba(0,194,255,0.1)]">
         <div className="text-xs text-[#7A8FA6] mb-1">Your DID:</div>
         <div className="font-mono text-xs text-[#00C2FF] break-all">
-          did:vault:z6MkhaXgW...3dk2pE
+          did:sovereign:z6MkhaXgW...3dk2pE
         </div>
       </div>
     </div>
