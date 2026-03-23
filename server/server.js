@@ -101,16 +101,25 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ═════════════════════════════════════════════════════════════════
 
 // ── API Health Check ──────────────────────────────────────────────────────────
-// Inline route handler (not in a separate file) — demonstrates single handler
+// LECTURE 25-28: Production-grade health endpoint with system diagnostics
+// Returns: status, memory breakdown, uptime, Node version, environment
 app.get('/api/health', (req, res) => {
-  // RESPONSE METHOD: res.json()
+  const mem = process.memoryUsage();
+
   res.json({
     status:      'ok',
     project:     'Sovereign SSI Platform',
     version:     '1.0.0',
     environment: config.NODE_ENV,
     uptime:      `${Math.round(process.uptime())}s`,
-    memory:      `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+    node:        process.version,
+    platform:    process.platform,
+    memory: {
+      rss:       `${Math.round(mem.rss / 1024 / 1024)}MB`,
+      heapUsed:  `${Math.round(mem.heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)}MB`,
+      external:  `${Math.round(mem.external / 1024 / 1024)}MB`,
+    },
     timestamp:   new Date().toISOString(),
     endpoints: {
       credentials: '/api/credentials',
