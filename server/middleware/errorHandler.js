@@ -7,6 +7,7 @@ const ERROR_LOG = path.join(__dirname, '..', 'data', 'errors.log');
 // ─── 404 HANDLER — Not Found ──────────────────────────────────────────────────
 // This middleware runs after all routes — if nothing matched, it's a 404.
 // LECTURE 21-24: Response Methods — res.status().json()
+// LECTURE 25-28: Enhanced with request ID tracing
 function notFound(req, res, next) {
   const error = new Error(`Route not found: ${req.method} ${req.url}`);
   error.statusCode = 404;
@@ -16,13 +17,15 @@ function notFound(req, res, next) {
 // ─── GLOBAL ERROR HANDLER ─────────────────────────────────────────────────────
 // Express identifies error middleware by its 4-argument signature.
 // MUST be registered LAST in server.js (after all routes).
+// LECTURE 25-28: Upgraded with structured JSON, request ID, and timestamp
 function errorHandler(err, req, res, next) {
   const statusCode = err.statusCode || err.status || 500;
   const message    = err.message || 'Internal Server Error';
   const timestamp  = new Date().toISOString();
+  const requestId  = req.id || null;
 
   // ── Log the error to file (LECTURE 5-8: fs.appendFile) ──────────────────
-  const logEntry = `[${timestamp}] ${statusCode} ${req.method} ${req.url} — ${message}`;
+  const logEntry = `[${timestamp}] [${requestId}] ${statusCode} ${req.method} ${req.url} — ${message}`;
   appendLog(ERROR_LOG, logEntry).catch(() => {}); // don't crash if log fails
 
   // ── Console output ────────────────────────────────────────────────────────
@@ -31,9 +34,9 @@ function errorHandler(err, req, res, next) {
     if (err.stack) console.error(err.stack);
   }
 
-  // ── JSON Response (LECTURE 21-24: Response Methods) ──────────────────────
-  // res.status() sets HTTP status code
-  // res.json()   sends JSON and sets Content-Type: application/json
+  // ── Structured JSON Response ────────────────────────────────────────────
+  // Returns: code, message, requestId, timestamp, path
+  // Stack trace only in development — never expose in production
   res.status(statusCode).json({
     success: false,
     error: {
@@ -42,6 +45,7 @@ function errorHandler(err, req, res, next) {
       // Only expose stack trace in development — never in production
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
     },
+    requestId,
     timestamp,
     path: req.url,
   });

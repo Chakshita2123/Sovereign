@@ -1,10 +1,12 @@
 
 const express = require('express');
+const { body } = require('express-validator');
 const router  = express.Router();
 
 const db       = require('../utils/fileDb');
 const { generateDID, buildDIDDocument, isValidDID } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
+const { validateBody } = require('../middleware/validate');
 const { FILES } = require('../config');
 
 // ─── GET /api/identity/:did ───────────────────────────────────────────────────
@@ -75,12 +77,11 @@ router.get('/:did/score', asyncWrapper(async (req, res) => {
 
 // ─── POST /api/identity/create ────────────────────────────────────────────────
 // Creates a new DID identity for a user
-router.post('/create', asyncWrapper(async (req, res) => {
+// LECTURE 25-28: Input validation using express-validator middleware
+router.post('/create', validateBody([
+  body('ownerName').notEmpty().withMessage('ownerName is required'),
+]), asyncWrapper(async (req, res) => {
   const { ownerName, keyType = 'Ed25519', method = 'indy' } = req.body;
-
-  if (!ownerName) {
-    const err = new Error('ownerName is required'); err.statusCode = 400; throw err;
-  }
 
   const newDID = generateDID(method);
   const didDocument = buildDIDDocument(newDID);

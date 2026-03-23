@@ -1,6 +1,7 @@
 
 
 const express = require('express');
+const { body } = require('express-validator');
 
 // Instead of defining all routes on app, we use mini-routers
 // that get mounted at a prefix in server.js.
@@ -9,6 +10,7 @@ const router = express.Router();
 const db         = require('../utils/fileDb');
 const { generateZKPProof, issueCredential } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
+const { validateBody } = require('../middleware/validate');
 const { FILES }  = require('../config');
 
 // ─── GET /api/credentials ─────────────────────────────────────────────────────
@@ -85,15 +87,13 @@ router.get('/:id', asyncWrapper(async (req, res) => {
 
 // ─── POST /api/credentials ────────────────────────────────────────────────────
 // ROUTING METHOD: POST — create a new credential
-router.post('/', asyncWrapper(async (req, res) => {
+// LECTURE 25-28: Input validation using express-validator middleware
+router.post('/', validateBody([
+  body('title').notEmpty().withMessage('title is required'),
+  body('type').notEmpty().withMessage('type is required'),
+  body('issuer').notEmpty().withMessage('issuer is required'),
+]), asyncWrapper(async (req, res) => {
   const { title, type, issuer, issuerDID, holderDID, claims } = req.body;
-
-  // ── Input validation ─────────────────────────────────────────────────────
-  if (!title || !type || !issuer) {
-    const error = new Error('Missing required fields: title, type, issuer');
-    error.statusCode = 400;
-    throw error;
-  }
 
   // ── Build the credential ──────────────────────────────────────────────────
   const w3cCredential = issuerDID && holderDID
