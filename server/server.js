@@ -1,11 +1,12 @@
 
-const express     = require('express');      // NPM: installed via `npm install express`
-const cors        = require('cors');         // NPM: Cross-Origin Resource Sharing
-const morgan      = require('morgan');       // NPM: HTTP request logger
-const path        = require('path');         // Built-in: file path utilities
-const fs          = require('fs');           // Built-in: file system
-const helmet      = require('helmet');       // NPM: Security headers (Lectures 25-28)
-const compression = require('compression');  // NPM: Gzip response compression
+const express        = require('express');         // NPM: installed via `npm install express`
+const cors           = require('cors');            // NPM: Cross-Origin Resource Sharing
+const morgan         = require('morgan');          // NPM: HTTP request logger
+const path           = require('path');            // Built-in: file path utilities
+const fs             = require('fs');              // Built-in: file system
+const helmet         = require('helmet');          // NPM: Security headers (Lectures 25-28)
+const compression    = require('compression');     // NPM: Gzip response compression
+const methodOverride = require('method-override'); // NPM: PUT/DELETE from HTML forms (Lectures 29-32)
 
 // ─── IMPORTING OUR CUSTOM MODULES ────────────────────────────────────────────
 // Each of these files uses module.exports — demonstrating file dependency
@@ -22,6 +23,7 @@ const identityRoutes   = require('./routes/identity');    // /api/identity
 const issuerRoutes     = require('./routes/issuer');      // /api/issuers
 const activityRoutes   = require('./routes/activity');    // /api/activity
 const dashboardRoutes  = require('./routes/dashboard');   // /api/dashboard
+const portalRoutes     = require('./routes/portal');      // /portal (SSR — Lectures 29-32)
 
 // ─── ENSURE DATA DIRECTORY EXISTS (File Handling — Lectures 5-8) ─────────────
 if (!fs.existsSync(config.DATA_DIR)) {
@@ -32,6 +34,12 @@ if (!fs.existsSync(config.DATA_DIR)) {
 // express() returns an Application object. This is the core of Express.
 // Under the hood, it wraps Node's http.createServer() (which we saw in http-demo.js)
 const app = express();
+
+// ── EJS VIEW ENGINE (Lectures 29-32) ──────────────────────────────────────────
+// EJS (Embedded JavaScript Templates) — server-side rendering for admin pages,
+// printable reports, and SEO-friendly pages. React handles the interactive wallet.
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 
 // ── 0. SECURITY HEADERS (Helmet) ──────────────────────────────────────────────
@@ -68,6 +76,11 @@ app.use(cors({
 // express.urlencoded()     — parses HTML form bodies → req.body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ── Method Override (Lectures 29-32) ─────────────────────────────────────────
+// HTML forms only support GET and POST. method-override lets us use PUT/DELETE
+// from EJS forms via a hidden _method field: <input name="_method" value="DELETE">
+app.use(methodOverride('_method'));
 
 // ── 2.5 COMPRESSION ──────────────────────────────────────────────────────────
 // Gzip all responses automatically — reduces payload size by ~70%
@@ -136,16 +149,17 @@ app.use('/api/identity',    identityRoutes);   // routes/identity.js
 app.use('/api/issuers',     issuerRoutes);     // routes/issuer.js
 app.use('/api/activity',    activityRoutes);   // routes/activity.js
 app.use('/api/dashboard',   dashboardRoutes);  // routes/dashboard.js
-// res.sendFile() streams a file from disk directly to the client.
-// This demonstrates "Handling static pages with file stream"
-app.get('/api-docs', (req, res) => {
-  const docsPath = path.join(__dirname, 'public', 'api-docs.html');
-  if (fs.existsSync(docsPath)) {
-    res.sendFile(docsPath); // streams the file — efficient for large HTML pages
-  } else {
-    // RESPONSE METHOD: res.redirect() — redirect to another URL
-    res.redirect('/');
-  }
+
+// ═════════════════════════════════════════════════════════════════
+// SERVER-SIDE RENDERED ROUTES (Lectures 29-32)
+// These routes render HTML pages using EJS templates.
+// SSR is used for: admin dashboards, printable reports, API docs
+// CSR (React) is used for: interactive wallet UI
+// ═════════════════════════════════════════════════════════════════
+app.use('/portal',   portalRoutes);             // /portal (issuer portal, reports)
+app.use('/api-docs', (req, res, next) => {       // /api-docs → portal route
+  req.url = '/docs';                             // rewrite to /docs handler
+  portalRoutes(req, res, next);
 });
 
 // ─── Catch-All: Redirect unknown GET routes to the frontend ───────────────────
@@ -166,7 +180,7 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║            SOVEREIGN — SSI Platform Backend                 ║');
-  console.log('║            Node.js + Express   Lectures 1-28                ║');
+  console.log('║            Node.js + Express   Lectures 1-32                ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log(`║  Server  : http://${config.HOST}:${config.PORT}                              ║`);
   console.log(`║  Env     : ${config.NODE_ENV.padEnd(51)}║`);
@@ -174,6 +188,12 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('║  Middleware (Lectures 25-28)                                ║');
   console.log('║  ✔ Helmet security headers    ✔ Gzip compression           ║');
   console.log('║  ✔ Rate limiting (100/15min)  ✔ Request ID tracing         ║');
+  console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  SSR Portal (Lectures 29-32)                               ║');
+  console.log('║  ✔ EJS view engine            ✔ method-override            ║');
+  console.log(`║  GET  /portal                    (issuer portal)            ║`);
+  console.log(`║  GET  /portal/report/:id         (credential report)        ║`);
+  console.log(`║  GET  /api-docs                  (API reference)            ║`);
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log('║  API Endpoints                                             ║');
   console.log(`║  GET  /api/health                (health check)             ║`);
