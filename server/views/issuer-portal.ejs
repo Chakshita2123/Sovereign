@@ -1,0 +1,143 @@
+<%- include('layouts/base', { body: `
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">
+      <i class="bi bi-building-fill-gear text-accent me-2"></i>Issuer Portal
+    </h1>
+    <p class="text-muted mb-0">Server-side rendered issuer dashboard — data from <code>issuers.json</code></p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <span class="sv-badge sv-badge-verified">
+      <i class="bi bi-check-circle-fill me-1"></i>${issuers.length} Registered Issuers
+    </span>
+  </div>
+</div>
+
+<!-- ── Summary Stats Row ──────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="sv-card text-center">
+      <div class="h2 fw-bold text-accent mb-1">
+        ${issuers.reduce((sum, i) => sum + (i.stats?.totalIssued || 0), 0).toLocaleString()}
+      </div>
+      <small class="text-muted">Total Credentials Issued</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="sv-card text-center">
+      <div class="h2 fw-bold text-primary-sv mb-1">${issuers.length}</div>
+      <small class="text-muted">Active Issuers</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="sv-card text-center">
+      <div class="h2 fw-bold mb-1" style="color: #10b981;">
+        ${issuers.reduce((sum, i) => sum + (i.stats?.activeTemplates || 0), 0)}
+      </div>
+      <small class="text-muted">Active Templates</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="sv-card text-center">
+      <div class="h2 fw-bold mb-1" style="color: #f59e0b;">
+        ${issuers.reduce((sum, i) => sum + (i.stats?.pendingDelivery || 0), 0).toLocaleString()}
+      </div>
+      <small class="text-muted">Pending Delivery</small>
+    </div>
+  </div>
+</div>
+
+<!-- ── Issuer Cards ───────────────────────────────────── -->
+<div class="row g-4">
+  ${issuers.map(issuer => \`
+  <div class="col-lg-4 col-md-6">
+    <div class="sv-card h-100">
+      <!-- Header -->
+      <div class="d-flex align-items-start justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div style="font-size: 2.2rem; line-height: 1;">${issuer.logo || '🏢'}</div>
+          <div>
+            <h5 class="fw-bold mb-0" style="font-size: 1rem;">${issuer.shortName || issuer.name}</h5>
+            <small class="text-muted">${issuer.category} · ${issuer.city || ''}</small>
+          </div>
+        </div>
+        ${issuer.verified
+          ? '<span class="sv-badge sv-badge-verified"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>'
+          : '<span class="sv-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Pending</span>'}
+      </div>
+
+      <!-- DID -->
+      <div class="mb-3 p-2 rounded" style="background: var(--sv-surface-2);">
+        <small class="text-muted d-block mb-1">Issuer DID</small>
+        <code style="font-size: 0.7rem; word-break: break-all; color: var(--sv-accent);">
+          ${issuer.did}
+        </code>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="row g-2 mb-3 text-center">
+        <div class="col-4">
+          <div class="p-2 rounded" style="background: var(--sv-surface-2);">
+            <div class="fw-bold text-accent">${(issuer.stats?.totalIssued || 0).toLocaleString()}</div>
+            <small class="text-muted" style="font-size: 0.7rem;">Issued</small>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="p-2 rounded" style="background: var(--sv-surface-2);">
+            <div class="fw-bold" style="color: #10b981;">${issuer.stats?.credentialHealth || 0}%</div>
+            <small class="text-muted" style="font-size: 0.7rem;">Health</small>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="p-2 rounded" style="background: var(--sv-surface-2);">
+            <div class="fw-bold text-primary-sv">${issuer.stats?.activeTemplates || 0}</div>
+            <small class="text-muted" style="font-size: 0.7rem;">Templates</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Templates -->
+      <div class="mb-3">
+        <small class="text-muted d-block mb-2">Credential Templates</small>
+        <div class="d-flex flex-wrap gap-1">
+          ${(issuer.templates || []).slice(0, 4).map(t =>
+            \`<span class="badge rounded-pill" style="background:var(--sv-surface-2);color:var(--sv-text);font-size:0.7rem;font-weight:500;">\${t}</span>\`
+          ).join('')}
+          ${(issuer.templates || []).length > 4
+            ? \`<span class="badge rounded-pill" style="background:var(--sv-surface-2);color:var(--sv-text-muted);font-size:0.7rem;">+\${issuer.templates.length - 4} more</span>\`
+            : ''}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-2 mt-auto">
+        <a href="/api/issuers/\${issuer.id}" class="btn btn-sm btn-outline-light flex-fill" target="_blank">
+          <i class="bi bi-code-slash me-1"></i>JSON
+        </a>
+        <a href="/api/issuers/\${issuer.id}/stats" class="btn btn-sm flex-fill"
+           style="background: var(--sv-primary); color: white;">
+          <i class="bi bi-graph-up me-1"></i>Stats
+        </a>
+      </div>
+    </div>
+  </div>
+  \`).join('')}
+</div>
+
+<!-- ── Credential Quick Lookup ────────────────────────── -->
+<div class="sv-card mt-4">
+  <h5 class="fw-bold mb-3">
+    <i class="bi bi-search me-2 text-accent"></i>Credential Report Lookup
+  </h5>
+  <p class="text-muted mb-3">Enter a credential ID to view its printable verification report.</p>
+  <form id="reportLookup" class="d-flex gap-2" onsubmit="event.preventDefault(); window.location.href='/portal/report/' + document.getElementById('credId').value;">
+    <input type="text" id="credId" class="form-control bg-dark border-secondary text-light"
+           placeholder="e.g. cred-001" style="max-width: 300px;">
+    <button type="submit" class="btn" style="background: var(--sv-primary); color: white;">
+      <i class="bi bi-file-earmark-text me-1"></i>View Report
+    </button>
+  </form>
+</div>
+
+` }) %>
