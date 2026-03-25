@@ -7,6 +7,10 @@ const fs             = require('fs');              // Built-in: file system
 const helmet         = require('helmet');          // NPM: Security headers (Lectures 25-28)
 const compression    = require('compression');     // NPM: Gzip response compression
 const methodOverride = require('method-override'); // NPM: PUT/DELETE from HTML forms (Lectures 29-32)
+const mongoose       = require('mongoose');         // NPM: MongoDB ODM (Lectures 33-36)
+
+// ─── DATABASE CONNECTION (Lectures 33-36) ─────────────────────────────────────
+const { connect: connectDB, getStatus: getDbStatus } = require('./config/database');
 
 // ─── IMPORTING OUR CUSTOM MODULES ────────────────────────────────────────────
 // Each of these files uses module.exports — demonstrating file dependency
@@ -34,6 +38,11 @@ if (!fs.existsSync(config.DATA_DIR)) {
 // express() returns an Application object. This is the core of Express.
 // Under the hood, it wraps Node's http.createServer() (which we saw in http-demo.js)
 const app = express();
+
+// ── CONNECT TO MONGODB (Lectures 33-36) ───────────────────────────────────────
+// Non-blocking — server starts immediately, DB connects in background.
+// If MONGO_URI is not set, server still runs (serves static/cached content).
+connectDB();
 
 // ── EJS VIEW ENGINE (Lectures 29-32) ──────────────────────────────────────────
 // EJS (Embedded JavaScript Templates) — server-side rendering for admin pages,
@@ -127,6 +136,10 @@ app.get('/api/health', (req, res) => {
     uptime:      `${Math.round(process.uptime())}s`,
     node:        process.version,
     platform:    process.platform,
+    // ── Database Status (Lectures 33-36) ──────────────────────────────────
+    // readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+    db:          getDbStatus(),
+    dbReadyState: mongoose.connection.readyState,
     memory: {
       rss:       `${Math.round(mem.rss / 1024 / 1024)}MB`,
       heapUsed:  `${Math.round(mem.heapUsed / 1024 / 1024)}MB`,
@@ -180,10 +193,11 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║            SOVEREIGN — SSI Platform Backend                 ║');
-  console.log('║            Node.js + Express   Lectures 1-32                ║');
+  console.log('║            Node.js + Express   Lectures 1-36                ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log(`║  Server  : http://${config.HOST}:${config.PORT}                              ║`);
   console.log(`║  Env     : ${config.NODE_ENV.padEnd(51)}║`);
+  console.log(`║  MongoDB : ${getDbStatus().padEnd(51)}║`);
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log('║  Middleware (Lectures 25-28)                                ║');
   console.log('║  ✔ Helmet security headers    ✔ Gzip compression           ║');
@@ -195,8 +209,12 @@ app.listen(config.PORT, config.HOST, () => {
   console.log(`║  GET  /portal/report/:id         (credential report)        ║`);
   console.log(`║  GET  /api-docs                  (API reference)            ║`);
   console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  MongoDB + Mongoose (Lectures 33-36)                       ║');
+  console.log('║  ✔ Mongoose ODM connected     ✔ Graceful shutdown          ║');
+  console.log('║  ✔ Credential schema          ✔ Identity (DID) schema      ║');
+  console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log('║  API Endpoints                                             ║');
-  console.log(`║  GET  /api/health                (health check)             ║`);
+  console.log(`║  GET  /api/health                (health + DB status)       ║`);
   console.log(`║  *    /api/credentials           (credential CRUD)          ║`);
   console.log(`║  *    /api/identity              (DID management)           ║`);
   console.log(`║  *    /api/issuers               (issuer portal)            ║`);
