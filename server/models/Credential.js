@@ -91,5 +91,13 @@ const credentialSchema = new mongoose.Schema(
 // MongoDB uses B-tree indexes — compound indexes work left-to-right (holder first)
 credentialSchema.index({ holder: 1, status: 1 });
 
+// ─── Pre-save Hook: Auto-set updatedAt ────────────────────────────────────────
+// Mongoose `timestamps` handles this for `updatedAt`, but this hook ensures
+// consistency even when using findOneAndUpdate (which bypasses save hooks).
+credentialSchema.pre('save', function (next) {
+  this.updatedAt = new Date();
+  next();
+});
+
 // ─── Export Model ─────────────────────────────────────────────────────────────
 module.exports = mongoose.model('Credential', credentialSchema);

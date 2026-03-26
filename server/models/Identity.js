@@ -105,4 +105,17 @@ const identitySchema = new mongoose.Schema(
   }
 );
 
+// ─── Pre-save Hook: Validate DID format ───────────────────────────────────────
+// W3C DID spec: did:<method>:<method-specific-id>
+// Examples: did:indy:sovrin:AaravSharma8Ps2k3nQ7vLh1TzW5
+const DID_REGEX = /^did:[a-z0-9]+:[a-z0-9]+:.+$/i;
+
+identitySchema.pre('save', function (next) {
+  if (this.did && !DID_REGEX.test(this.did)) {
+    return next(new Error(`Invalid DID format: ${this.did}. Must match did:<method>:<network>:<id>`));
+  }
+  this.updated = new Date();
+  next();
+});
+
 module.exports = mongoose.model('Identity', identitySchema);
