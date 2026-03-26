@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "http-demo": "node http-demo.js",
     "file-demo": "node file-handling-demo.js",
-    "seed": "node utils/seedData.js"
+    "seed": "node utils/seedData.js",
+    "migrate": "node utils/migrate.js"
   },
   "dependencies": {
     "compression": "^1.8.1",
