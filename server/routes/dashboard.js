@@ -1,21 +1,24 @@
 /**
  * routes/dashboard.js — Dashboard KPI & Overview Data
-
+ * Day 4: Migrated from fileDb to Mongoose models
  */
 const express = require('express');
 const router  = express.Router();
-const { readAll } = require('../utils/fileDb');
+
+// ── Mongoose models ───────────────────────────────────────────────────────────
+const Credential   = require('../models/Credential');
+const Activity     = require('../models/Activity');
+const ProofRequest = require('../models/ProofRequest');
+const Issuer       = require('../models/Issuer');
 const { asyncWrapper } = require('../middleware/errorHandler');
-const fs   = require('fs');
-const path = require('path');
 
 // GET /api/dashboard — full dashboard data in one call
 router.get('/', asyncWrapper(async (req, res) => {
   const [credentials, activities, proofRequests, issuers] = await Promise.all([
-    readAll('credentials'),
-    readAll('activities'),
-    readAll('proof-requests'),
-    readAll('issuers'),
+    Credential.find().lean(),
+    Activity.find().sort({ timestamp: -1 }).lean(),
+    ProofRequest.find().lean(),
+    Issuer.find().lean(),
   ]);
 
   // Compute live KPIs from the data
@@ -45,7 +48,7 @@ router.get('/', asyncWrapper(async (req, res) => {
     data: {
       kpi,
       issuerStats: { ...issuerStats, credentialHealth: 97.8 },
-      recentActivities: activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 8),
+      recentActivities: activities.slice(0, 8),
       pendingProofRequests: proofRequests.filter(r => r.status === 'pending'),
     },
   });
@@ -53,13 +56,7 @@ router.get('/', asyncWrapper(async (req, res) => {
 
 // GET /api/dashboard/kpi — just KPI numbers
 router.get('/kpi', asyncWrapper(async (req, res) => {
-  const kpPath = path.join(__dirname, '..', 'data', 'kpi.json');
-  if (fs.existsSync(kpPath)) {
-    const kpi = JSON.parse(fs.readFileSync(kpPath, 'utf8'));
-    return res.json({ success: true, data: kpi });
-  }
-  // Compute on the fly if kpi.json not seeded
-  const credentials = await readAll('credentials');
+  const credentials = await Credential.find().lean();
   res.json({ success: true, data: {
     totalCredentials: credentials.length,
     securityScore: 91,

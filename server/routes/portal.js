@@ -1,6 +1,7 @@
 /**
  * routes/portal.js — Server-Side Rendered Portal Routes
  * Lectures 29-32: EJS templates, SSR vs CSR, template partials
+ * Day 4: Migrated from fileDb to Mongoose models
  * 
  * These routes render HTML pages using EJS — demonstrating when to use
  * server-side rendering (admin dashboards, printable pages, SEO)
@@ -10,15 +11,16 @@
 const express = require('express');
 const router  = express.Router();
 
-const db      = require('../utils/fileDb');
-const { FILES } = require('../config');
+// ── Mongoose models ───────────────────────────────────────────────────────────
+const Issuer     = require('../models/Issuer');
+const Credential = require('../models/Credential');
 
 // ─── GET /portal ──────────────────────────────────────────────────────────────
 // Renders the Issuer Portal — a server-side rendered admin dashboard
-// Data comes from issuers.json via fileDb, passed to the EJS template
+// Data comes from MongoDB via Mongoose, passed to the EJS template
 router.get('/', async (req, res, next) => {
   try {
-    const issuers = await db.readAll(FILES.ISSUERS);
+    const issuers = await Issuer.find().lean();
     res.render('issuer-portal', {
       issuers,
       pageTitle: 'Issuer Portal',
@@ -35,7 +37,7 @@ router.get('/', async (req, res, next) => {
 // Fetches a single credential by ID and passes it to the EJS template
 router.get('/report/:id', async (req, res, next) => {
   try {
-    const credential = await db.findById(FILES.CREDENTIALS, req.params.id);
+    const credential = await Credential.findOne({ id: req.params.id }).lean();
 
     if (!credential) {
       return res.status(404).render('layouts/base', {
@@ -72,7 +74,7 @@ router.get('/docs', async (req, res, next) => {
   try {
     const routes = [
       // Health
-      { method: 'GET', path: '/api/health', description: 'System health check — memory, uptime, Node version', group: '🔧 System' },
+      { method: 'GET', path: '/api/health', description: 'System health check — memory, uptime, Node version, DB status', group: '🔧 System' },
 
       // Credentials
       { method: 'GET',    path: '/api/credentials',           description: 'List all credentials (supports ?status, ?type, ?search filters)', group: '📜 Credentials' },
@@ -99,7 +101,7 @@ router.get('/docs', async (req, res, next) => {
       { method: 'POST', path: '/api/issuers',              description: 'Register a new issuer (requires: name, did, type)', group: '🏢 Issuers' },
       { method: 'POST', path: '/api/issuers/:id/issue',    description: 'Issue a single Verifiable Credential to a holder DID', group: '🏢 Issuers' },
       { method: 'POST', path: '/api/issuers/:id/bulk',     description: 'Bulk-issue credentials to multiple holder DIDs', group: '🏢 Issuers' },
-      { method: 'GET',  path: '/api/issuers/:id/export',   description: 'Download credentials.json as a file', group: '🏢 Issuers' },
+      { method: 'GET',  path: '/api/issuers/:id/export',   description: 'Download credentials as JSON file', group: '🏢 Issuers' },
 
       // Activity
       { method: 'GET',  path: '/api/activity',                           description: 'Activity feed (supports ?limit, ?type filters)', group: '📊 Activity' },

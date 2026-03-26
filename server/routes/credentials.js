@@ -7,26 +7,34 @@ const { body } = require('express-validator');
 // that get mounted at a prefix in server.js.
 const router = express.Router();
 
-const db         = require('../utils/fileDb');
+// ── Day 4: Mongoose models replace fileDb ──────────────────────────────────────
+const Credential = require('../models/Credential');
+const db         = require('../utils/db');
 const { generateZKPProof, issueCredential } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
 const { validateBody } = require('../middleware/validate');
-const { FILES }  = require('../config');
 
 // ─── GET /api/credentials ─────────────────────────────────────────────────────
 // ROUTE HANDLER: returns all credentials, optionally filtered by query params
 
 router.get('/', asyncWrapper(async (req, res) => {
-  let credentials = await db.readAll(FILES.CREDENTIALS);
-
-  // QUERY PARAMETER filtering — ?status=verified&type=Education
   const { status, type, search } = req.query;
-  if (status)  credentials = credentials.filter(c => c.status === status);
-  if (type)    credentials = credentials.filter(c => c.type === type);
-  if (search)  credentials = credentials.filter(c =>
-    c.title.toLowerCase().includes(search.toLowerCase()) ||
-    c.issuer.toLowerCase().includes(search.toLowerCase())
-  );
+
+  // Build MongoDB filter from query params
+  const filter = {};
+  if (status) filter.status = status;
+  if (type)   filter.type = type;
+
+  let credentials = await db.readAll(Credential, filter);
+
+  // Text search filter (not indexed — fine for small collections)
+  if (search) {
+    const q = search.toLowerCase();
+    credentials = credentials.filter(c =>
+      (c.type || '').toLowerCase().includes(q) ||
+      (c.issuer || '').toLowerCase().includes(q)
+    );
+  }
 
   // RESPONSE METHOD: res.json() — sets Content-Type: application/json automatically
   res.json({
@@ -40,7 +48,7 @@ router.get('/', asyncWrapper(async (req, res) => {
 // ⚠️ IMPORTANT: Specific routes MUST come before parameterized routes /:id
 // Otherwise Express would interpret 'stats' as an :id value
 router.get('/stats', asyncWrapper(async (req, res) => {
-  const credentials = await db.readAll(FILES.CREDENTIALS);
+  const credentials = await db.readAll(Credential);
   const stats = {
     total:    credentials.length,
     verified: credentials.filter(c => c.status === 'verified').length,
@@ -67,14 +75,14 @@ router.get('/status/:stat', asyncWrapper(async (req, res) => {
     throw error; // asyncWrapper catches this and passes to errorHandler
   }
 
-  const credentials = await db.findBy(FILES.CREDENTIALS, 'status', stat);
+  const credentials = await db.findBy(Credential, 'status', stat);
   res.json({ success: true, count: credentials.length, data: credentials });
 }));
 
 // ─── GET /api/credentials/:id ─────────────────────────────────────────────────
 // ROUTE PARAMETER: :id — matches any single URL segment
 router.get('/:id', asyncWrapper(async (req, res) => {
-  const credential = await db.findById(FILES.CREDENTIALS, req.params.id);
+  const credential = await db.findById(Credential, req.params.id);
 
   if (!credential) {
     const error = new Error(`Credential not found: ${req.params.id}`);
@@ -100,7 +108,7 @@ router.post('/', validateBody([
     ? issueCredential({ issuerDID, holderDID, type, claims: claims || {} })
     : null;
 
-  const newCredential = await db.create(FILES.CREDENTIALS, {
+  const newCredential = await db.create(Credential, {
     title,
     type,
     issuer,
@@ -120,31 +128,31 @@ router.post('/', validateBody([
 // ─── PUT /api/credentials/:id ─────────────────────────────────────────────────
 // ROUTING METHOD: PUT — replace the entire credential record
 router.put('/:id', asyncWrapper(async (req, res) => {
-  const existing = await db.findById(FILES.CREDENTIALS, req.params.id);
+  const existing = await db.findById(Credential, req.params.id);
   if (!existing) {
     const err = new Error(`Credential not found: ${req.params.id}`);
     err.statusCode = 404; throw err;
   }
-  const updated = await db.update(FILES.CREDENTIALS, req.params.id, req.body);
+  const updated = await db.update(Credential, req.params.id, req.body);
   res.json({ success: true, data: updated });
 }));
 
 // ─── PATCH /api/credentials/:id ───────────────────────────────────────────────
 // ROUTING METHOD: PATCH — partial update (e.g., change status only)
 router.patch('/:id', asyncWrapper(async (req, res) => {
-  const existing = await db.findById(FILES.CREDENTIALS, req.params.id);
+  const existing = await db.findById(Credential, req.params.id);
   if (!existing) {
     const err = new Error(`Credential not found: ${req.params.id}`);
     err.statusCode = 404; throw err;
   }
-  const updated = await db.update(FILES.CREDENTIALS, req.params.id, req.body);
+  const updated = await db.update(Credential, req.params.id, req.body);
   res.json({ success: true, data: updated });
 }));
 
 // ─── DELETE /api/credentials/:id ──────────────────────────────────────────────
 // ROUTING METHOD: DELETE — revoke and remove a credential
 router.delete('/:id', asyncWrapper(async (req, res) => {
-  const deleted = await db.remove(FILES.CREDENTIALS, req.params.id);
+  const deleted = await db.remove(Credential, req.params.id);
   if (!deleted) {
     const err = new Error(`Credential not found: ${req.params.id}`);
     err.statusCode = 404; throw err;
@@ -156,7 +164,7 @@ router.delete('/:id', asyncWrapper(async (req, res) => {
 // ─── POST /api/credentials/:id/share ─────────────────────────────────────────
 // NESTED ROUTE: action on a specific resource
 router.post('/:id/share', asyncWrapper(async (req, res) => {
-  const credential = await db.findById(FILES.CREDENTIALS, req.params.id);
+  const credential = await db.findById(Credential, req.params.id);
   if (!credential) {
     const err = new Error(`Credential not found: ${req.params.id}`);
     err.statusCode = 404; throw err;
@@ -181,7 +189,7 @@ router.post('/:id/share', asyncWrapper(async (req, res) => {
 // ─── POST /api/credentials/:id/zkp ────────────────────────────────────────────
 // Generate a Zero-Knowledge Proof for a credential
 router.post('/:id/zkp', asyncWrapper(async (req, res) => {
-  const credential = await db.findById(FILES.CREDENTIALS, req.params.id);
+  const credential = await db.findById(Credential, req.params.id);
   if (!credential) {
     const err = new Error(`Credential not found: ${req.params.id}`);
     err.statusCode = 404; throw err;

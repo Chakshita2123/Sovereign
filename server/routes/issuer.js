@@ -1,24 +1,24 @@
 
 const express = require('express');
 const router  = express.Router();
-const fs      = require('fs');
-const path    = require('path');
 
-const db       = require('../utils/fileDb');
+// ── Day 4: Mongoose models replace fileDb ──────────────────────────────────────
+const Issuer     = require('../models/Issuer');
+const Credential = require('../models/Credential');
+const db         = require('../utils/db');
 const { issueCredential, isValidDID } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
-const { FILES, DATA_DIR } = require('../config');
 
 // ─── GET /api/issuers ─────────────────────────────────────────────────────────
 router.get('/', asyncWrapper(async (req, res) => {
-  const issuers = await db.readAll(FILES.ISSUERS);
+  const issuers = await db.readAll(Issuer);
   res.json({ success: true, count: issuers.length, data: issuers });
 }));
 
 // ─── GET /api/issuers/:id/stats ───────────────────────────────────────────────
 // Must be declared before /:id to avoid conflict
 router.get('/:id/stats', asyncWrapper(async (req, res) => {
-  const issuer = await db.findById(FILES.ISSUERS, req.params.id);
+  const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
   // Generate 30-day chart data
@@ -36,8 +36,8 @@ router.get('/:id/stats', asyncWrapper(async (req, res) => {
     success: true,
     data: {
       issuerId: issuer.id,
-      totalIssued: issuer.credentialsIssued,
-      activeTemplates: issuer.activeTemplates,
+      totalIssued: issuer.credentialsIssued || issuer.stats?.totalIssued || 0,
+      activeTemplates: issuer.activeTemplates || issuer.stats?.activeTemplates || 0,
       health: 98.7,
       chart: chartData,
     },
@@ -46,7 +46,7 @@ router.get('/:id/stats', asyncWrapper(async (req, res) => {
 
 // ─── GET /api/issuers/:id ─────────────────────────────────────────────────────
 router.get('/:id', asyncWrapper(async (req, res) => {
-  const issuer = await db.findById(FILES.ISSUERS, req.params.id);
+  const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
   res.json({ success: true, data: issuer });
 }));
@@ -60,8 +60,8 @@ router.post('/', asyncWrapper(async (req, res) => {
   if (!isValidDID(did)) {
     const e = new Error(`Invalid DID format: ${did}`); e.statusCode = 400; throw e;
   }
-  const issuer = await db.create(FILES.ISSUERS, {
-    name, did, type,
+  const issuer = await db.create(Issuer, {
+    name, did, category: type,
     credentialsIssued: 0,
     activeTemplates: 0,
     status: 'pending',
@@ -72,7 +72,7 @@ router.post('/', asyncWrapper(async (req, res) => {
 // ─── POST /api/issuers/:id/issue ──────────────────────────────────────────────
 // Issue a single Verifiable Credential to a holder DID
 router.post('/:id/issue', asyncWrapper(async (req, res) => {
-  const issuer = await db.findById(FILES.ISSUERS, req.params.id);
+  const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
   const { holderDID, credentialType, claims } = req.body;
@@ -88,9 +88,10 @@ router.post('/:id/issue', asyncWrapper(async (req, res) => {
   });
 
   // Update issuer's count
-  await db.update(FILES.ISSUERS, issuer.id, {
-    credentialsIssued: issuer.credentialsIssued + 1,
-  });
+  await Issuer.findOneAndUpdate(
+    { id: issuer.id },
+    { $inc: { credentialsIssued: 1 } }
+  );
 
   res.status(201).json({ success: true, data: credential });
 }));
@@ -98,7 +99,7 @@ router.post('/:id/issue', asyncWrapper(async (req, res) => {
 // ─── POST /api/issuers/:id/bulk ────────────────────────────────────────────────
 // Bulk issue credentials to a list of holder DIDs
 router.post('/:id/bulk', asyncWrapper(async (req, res) => {
-  const issuer = await db.findById(FILES.ISSUERS, req.params.id);
+  const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
   const { holderDIDs, credentialType, claims } = req.body;
@@ -120,9 +121,10 @@ router.post('/:id/bulk', asyncWrapper(async (req, res) => {
   const delivered = results.filter(r => r.status === 'delivered').length;
   const failed    = results.filter(r => r.status === 'failed').length;
 
-  await db.update(FILES.ISSUERS, issuer.id, {
-    credentialsIssued: issuer.credentialsIssued + delivered,
-  });
+  await Issuer.findOneAndUpdate(
+    { id: issuer.id },
+    { $inc: { credentialsIssued: delivered } }
+  );
 
   res.json({
     success: true,
@@ -132,20 +134,18 @@ router.post('/:id/bulk', asyncWrapper(async (req, res) => {
 }));
 
 // ─── GET /api/issuers/:id/export ──────────────────────────────────────────────
-// Exports the credentials.json file as a download
+// Exports credentials as a JSON download
 router.get('/:id/export', asyncWrapper(async (req, res) => {
-  const issuer = await db.findById(FILES.ISSUERS, req.params.id);
+  const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
-  const exportPath = FILES.CREDENTIALS;
-  if (!fs.existsSync(exportPath)) {
-    const e = new Error('No credentials data to export'); e.statusCode = 404; throw e;
-  }
-
-  // RESPONSE METHOD: res.download() — triggers file download in the browser
-  // Sets Content-Disposition: attachment header automatically
+  // Fetch all credentials from MongoDB and send as downloadable JSON
+  const credentials = await db.readAll(Credential);
   const filename = `sovereign-credentials-${new Date().toISOString().split('T')[0]}.json`;
-  res.download(exportPath, filename);
+
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Type', 'application/json');
+  res.json(credentials);
 }));
 
 module.exports = router;

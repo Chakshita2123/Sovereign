@@ -3,11 +3,12 @@ const express = require('express');
 const { body } = require('express-validator');
 const router  = express.Router();
 
-const db       = require('../utils/fileDb');
+// ── Day 4: Mongoose models replace fileDb ──────────────────────────────────────
+const Identity = require('../models/Identity');
+const db       = require('../utils/db');
 const { generateDID, buildDIDDocument, isValidDID } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
 const { validateBody } = require('../middleware/validate');
-const { FILES } = require('../config');
 
 // ─── GET /api/identity/:did ───────────────────────────────────────────────────
 // Resolves a DID to its DID Document (the W3C DID Resolution spec)
@@ -22,9 +23,8 @@ router.get('/:did', asyncWrapper(async (req, res) => {
     err.statusCode = 400; throw err;
   }
 
-  // Look up in our data store
-  const dids = await db.readAll(FILES.DIDS);
-  const record = dids.find(d => d.did === did);
+  // Look up in MongoDB
+  const record = await Identity.findOne({ did }).lean();
 
   if (!record) {
     const err = new Error(`DID not found: ${did}`);
@@ -48,8 +48,7 @@ router.get('/:did', asyncWrapper(async (req, res) => {
 // Returns the security score for a DID identity
 router.get('/:did/score', asyncWrapper(async (req, res) => {
   const did = decodeURIComponent(req.params.did);
-  const dids = await db.readAll(FILES.DIDS);
-  const record = dids.find(d => d.did === did);
+  const record = await Identity.findOne({ did }).lean();
   if (!record) { const e = new Error('DID not found'); e.statusCode = 404; throw e; }
 
   // Score factors
@@ -86,33 +85,35 @@ router.post('/create', validateBody([
   const newDID = generateDID(method);
   const didDocument = buildDIDDocument(newDID);
 
-  const record = await db.create(FILES.DIDS, {
+  const record = await db.create(Identity, {
     did: newDID,
-    owner: ownerName,
-    method,
-    keyType,
+    controller: ownerName,
     status: 'active',
-    created: new Date().toISOString().split('T')[0],
+    created: new Date().toISOString(),
     lastRotated: null,
-    securityScore: 72, // initial score before full setup
-    didDocument,
+    trustScore: 72, // initial score before full setup
   });
 
-  res.status(201).json({ success: true, data: record });
+  res.status(201).json({ success: true, data: { ...record, didDocument } });
 }));
 
 // ─── PATCH /api/identity/:did/rotate ──────────────────────────────────────────
 // Simulates rotating the signing keys for a DID
 router.patch('/:did/rotate', asyncWrapper(async (req, res) => {
   const did = decodeURIComponent(req.params.did);
-  const dids = await db.readAll(FILES.DIDS);
-  const index = dids.findIndex(d => d.did === did);
-  if (index === -1) { const e = new Error('DID not found'); e.statusCode = 404; throw e; }
+  const record = await Identity.findOne({ did }).lean();
+  if (!record) { const e = new Error('DID not found'); e.statusCode = 404; throw e; }
 
-  const updated = await db.update(FILES.DIDS, dids[index].id, {
-    lastRotated: new Date().toISOString().split('T')[0],
-    securityScore: Math.min(100, (dids[index].securityScore || 72) + 10),
-  });
+  const updated = await Identity.findOneAndUpdate(
+    { did },
+    {
+      $set: {
+        lastRotated: new Date().toISOString().split('T')[0],
+        trustScore: Math.min(100, (record.trustScore || 72) + 10),
+      },
+    },
+    { new: true, lean: true }
+  );
 
   res.json({
     success: true,
