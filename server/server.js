@@ -8,6 +8,8 @@ const helmet         = require('helmet');          // NPM: Security headers (Lec
 const compression    = require('compression');     // NPM: Gzip response compression
 const methodOverride = require('method-override'); // NPM: PUT/DELETE from HTML forms (Lectures 29-32)
 const mongoose       = require('mongoose');         // NPM: MongoDB ODM (Lectures 33-36)
+const session        = require('express-session'); // NPM: Session management (Lectures 37-40)
+const MongoStore     = require('connect-mongo');   // NPM: MongoDB session store (Lectures 37-40)
 
 // ─── DATABASE CONNECTION (Lectures 33-36) ─────────────────────────────────────
 const { connect: connectDB, getStatus: getDbStatus } = require('./config/database');
@@ -19,6 +21,7 @@ const logger     = require('./middleware/logger');     // custom logger middlewa
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const requestId      = require('./middleware/requestId');     // UUID tracing
 const { globalLimiter } = require('./middleware/rateLimiter'); // rate limiting
+const flash          = require('./middleware/flash');         // flash messages (Lectures 37-40)
 
 // ─── IMPORTING ROUTE MODULES ──────────────────────────────────────────────────
 // express.Router() instances — each handles a namespace of routes
@@ -28,6 +31,7 @@ const issuerRoutes     = require('./routes/issuer');      // /api/issuers
 const activityRoutes   = require('./routes/activity');    // /api/activity
 const dashboardRoutes  = require('./routes/dashboard');   // /api/dashboard
 const portalRoutes     = require('./routes/portal');      // /portal (SSR — Lectures 29-32)
+const authPortalRoutes = require('./routes/auth-portal'); // /portal auth (Lectures 37-40)
 
 // ─── ENSURE DATA DIRECTORY EXISTS (File Handling — Lectures 5-8) ─────────────
 if (!fs.existsSync(config.DATA_DIR)) {
@@ -96,7 +100,39 @@ app.use(methodOverride('_method'));
 // Must come after body parsers, before route handlers
 app.use(compression());
 
-// ── 2.6 RATE LIMITING ─────────────────────────────────────────────────────────
+// ── 2.6 SESSION MANAGEMENT (Lectures 37-40) ──────────────────────────────────
+// express-session creates a session object (req.session) that persists across
+// requests. The session ID is stored in a cookie (connect.sid) on the client.
+// MongoStore saves session data in MongoDB — sessions survive server restarts.
+//
+// Cookie security:
+//   httpOnly  — JavaScript cannot access the cookie (prevents XSS theft)
+//   secure    — cookie only sent over HTTPS (in production)
+//   sameSite  — cookie not sent on cross-site requests (CSRF protection)
+//   maxAge    — session expires after 24 hours
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'sovereign-dev-secret',
+  resave: false,                          // don't save session if unmodified
+  saveUninitialized: false,               // don't create session until something stored
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    collectionName: 'sessions',           // visible in Atlas as 'sessions' collection
+    ttl: 60 * 60 * 24,                   // session TTL: 24 hours (seconds)
+  }),
+  cookie: {
+    httpOnly: true,                        // JS cannot access cookie (XSS protection)
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+    sameSite: 'lax',                       // CSRF protection
+    maxAge: 1000 * 60 * 60 * 24,          // 24 hours (milliseconds)
+  }
+}));
+
+// ── 2.7 FLASH MESSAGES (Lectures 37-40) ──────────────────────────────────────
+// Must come AFTER session middleware — flash uses req.session
+// Copies one-time messages from session to res.locals for EJS templates
+app.use(flash);
+
+// ── 2.8 RATE LIMITING ─────────────────────────────────────────────────────────
 // Global: 100 requests per 15 min per IP — protects against DDoS
 app.use(globalLimiter);
 
@@ -164,12 +200,14 @@ app.use('/api/activity',    activityRoutes);   // routes/activity.js
 app.use('/api/dashboard',   dashboardRoutes);  // routes/dashboard.js
 
 // ═════════════════════════════════════════════════════════════════
-// SERVER-SIDE RENDERED ROUTES (Lectures 29-32)
+// SERVER-SIDE RENDERED ROUTES (Lectures 29-32 + 37-40)
 // These routes render HTML pages using EJS templates.
 // SSR is used for: admin dashboards, printable reports, API docs
 // CSR (React) is used for: interactive wallet UI
+// Auth routes (login/logout) must be mounted BEFORE the portal guard
 // ═════════════════════════════════════════════════════════════════
-app.use('/portal',   portalRoutes);             // /portal (issuer portal, reports)
+app.use('/portal',   authPortalRoutes);         // /portal/login, /portal/logout (Lectures 37-40)
+app.use('/portal',   portalRoutes);             // /portal (issuer portal, reports — session guarded)
 app.use('/api-docs', (req, res, next) => {       // /api-docs → portal route
   req.url = '/docs';                             // rewrite to /docs handler
   portalRoutes(req, res, next);
@@ -193,7 +231,7 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║            SOVEREIGN — SSI Platform Backend                 ║');
-  console.log('║            Node.js + Express   Lectures 1-36                ║');
+  console.log('║            Node.js + Express   Lectures 1-40                ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log(`║  Server  : http://${config.HOST}:${config.PORT}                              ║`);
   console.log(`║  Env     : ${config.NODE_ENV.padEnd(51)}║`);
@@ -208,6 +246,13 @@ app.listen(config.PORT, config.HOST, () => {
   console.log(`║  GET  /portal                    (issuer portal)            ║`);
   console.log(`║  GET  /portal/report/:id         (credential report)        ║`);
   console.log(`║  GET  /api-docs                  (API reference)            ║`);
+  console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  Sessions & Auth (Lectures 37-40)                          ║');
+  console.log('║  ✔ express-session + MongoStore  ✔ Flash messages           ║');
+  console.log('║  ✔ bcrypt password hashing       ✔ Session auth guard       ║');
+  console.log(`║  GET  /portal/login              (login page)               ║`);
+  console.log(`║  POST /portal/login              (authenticate)             ║`);
+  console.log(`║  GET  /portal/logout             (destroy session)          ║`);
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log('║  MongoDB + Mongoose (Lectures 33-36)                       ║');
   console.log('║  ✔ Mongoose ODM connected     ✔ Graceful shutdown          ║');
