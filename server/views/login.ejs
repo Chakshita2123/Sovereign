@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' — Sovereign' : 'Sovereign SSI Platform' %></title>
+  <meta name="description" content="<%= typeof pageDescription !== 'undefined' ? pageDescription : 'Sign in to the Sovereign Issuer Portal' %>">
+
+  <!-- Bootstrap 5.3 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --sv-primary: #6C63FF;
+      --sv-primary-dark: #524ae0;
+      --sv-accent: #00D9FF;
+      --sv-bg: #0a0a1a;
+      --sv-surface: #12122a;
+      --sv-surface-2: #1a1a3e;
+      --sv-border: #2a2a5a;
+      --sv-text: #e0e0f0;
+      --sv-text-muted: #8888aa;
+    }
+
+    body {
+      background: var(--sv-bg);
+      color: var(--sv-text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Login Container ──────────────────────────── */
+    .login-wrapper {
+      width: 100%;
+      max-width: 440px;
+      padding: 2rem;
+    }
+
+    .login-card {
+      background: var(--sv-surface);
+      border: 1px solid var(--sv-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--sv-primary), var(--sv-accent));
+    }
+
+    /* ── Brand ────────────────────────────────────── */
+    .login-brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-brand-icon {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--sv-primary), var(--sv-accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-brand h2 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .login-brand p {
+      color: var(--sv-text-muted);
+      font-size: 0.9rem;
+      margin: 0.25rem 0 0;
+    }
+
+    /* ── Form ─────────────────────────────────────── */
+    .login-form .form-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--sv-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.4rem;
+    }
+
+    .login-form .form-control {
+      background: var(--sv-surface-2);
+      border: 1px solid var(--sv-border);
+      color: var(--sv-text);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .login-form .form-control:focus {
+      border-color: var(--sv-primary);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+      background: var(--sv-surface-2);
+      color: var(--sv-text);
+    }
+
+    .login-form .form-control::placeholder {
+      color: var(--sv-text-muted);
+      opacity: 0.6;
+    }
+
+    .login-form .input-group-text {
+      background: var(--sv-surface-2);
+      border: 1px solid var(--sv-border);
+      border-right: none;
+      color: var(--sv-text-muted);
+      border-radius: 10px 0 0 10px;
+    }
+
+    .login-form .input-group .form-control {
+      border-left: none;
+      border-radius: 0 10px 10px 0;
+    }
+
+    /* ── Button ───────────────────────────────────── */
+    .btn-sovereign {
+      background: linear-gradient(135deg, var(--sv-primary), var(--sv-primary-dark));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      width: 100%;
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+
+    .btn-sovereign:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(108, 99, 255, 0.35);
+      color: #fff;
+    }
+
+    .btn-sovereign:active {
+      transform: translateY(0);
+    }
+
+    /* ── Alerts ───────────────────────────────────── */
+    .alert-flash {
+      border-radius: 10px;
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      border: none;
+    }
+
+    .alert-flash-error {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .alert-flash-success {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    /* ── Footer ──────────────────────────────────── */
+    .login-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--sv-text-muted);
+      font-size: 0.8rem;
+    }
+
+    .login-footer a {
+      color: var(--sv-accent);
+      text-decoration: none;
+    }
+
+    .login-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <!-- ═══ BRAND ═══ -->
+      <div class="login-brand">
+        <i class="bi bi-shield-lock-fill login-brand-icon"></i>
+        <h2>Sovereign</h2>
+        <p>Issuer Portal — Secure Access</p>
+      </div>
+
+      <!-- ═══ FLASH MESSAGES ═══ -->
+      <% if (typeof flash !== 'undefined' && flash.error) { %>
+        <div class="alert alert-flash alert-flash-error mb-3">
+          <i class="bi bi-exclamation-circle-fill me-2"></i><%= flash.error %>
+        </div>
+      <% } %>
+
+      <% if (typeof flash !== 'undefined' && flash.success) { %>
+        <div class="alert alert-flash alert-flash-success mb-3">
+          <i class="bi bi-check-circle-fill me-2"></i><%= flash.success %>
+        </div>
+      <% } %>
+
+      <!-- ═══ LOGIN FORM ═══ -->
+      <form class="login-form" method="POST" action="/portal/login">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+            <input type="email" class="form-control" id="email" name="email"
+                   placeholder="admin@sovereign.dev" required autocomplete="email" autofocus>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+            <input type="password" class="form-control" id="password" name="password"
+                   placeholder="••••••••" required autocomplete="current-password">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-sovereign">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <!-- ═══ FOOTER ═══ -->
+      <div class="login-footer">
+        <p>&copy; 2026 Sovereign — Lectures 37-40</p>
+        <a href="/api/health" target="_blank"><i class="bi bi-heart-pulse me-1"></i>API Health</a>
+        &nbsp;·&nbsp;
+        <a href="/api-docs" target="_blank"><i class="bi bi-journal-code me-1"></i>API Docs</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
