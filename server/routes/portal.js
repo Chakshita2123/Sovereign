@@ -1,11 +1,16 @@
 /**
  * routes/portal.js — Server-Side Rendered Portal Routes
  * Lectures 29-32: EJS templates, SSR vs CSR, template partials
+ * Lectures 37-40: Session-based authentication guard
  * Day 4: Migrated from fileDb to Mongoose models
+ * Day 5: Protected with sessionAuth middleware
  * 
  * These routes render HTML pages using EJS — demonstrating when to use
  * server-side rendering (admin dashboards, printable pages, SEO)
  * vs client-side rendering (React wallet UI).
+ * 
+ * All routes in this file require authentication (sessionAuth middleware).
+ * Login/logout routes are in routes/auth-portal.js (mounted BEFORE this).
  */
 
 const express = require('express');
@@ -14,6 +19,21 @@ const router  = express.Router();
 // ── Mongoose models ───────────────────────────────────────────────────────────
 const Issuer     = require('../models/Issuer');
 const Credential = require('../models/Credential');
+
+// ── Session Auth Guard (Lectures 37-40) ───────────────────────────────────────
+// This middleware protects ALL routes in this router.
+// If the user is not logged in, they are redirected to /portal/login.
+// The guard is applied with router.use() — it runs before every route handler.
+const sessionAuth = require('../middleware/sessionAuth');
+router.use(sessionAuth);
+
+// ── Pass user data to all templates ───────────────────────────────────────────
+// res.locals makes variables available in every EJS template rendered by this router.
+// This avoids passing { user: req.session.user } in every res.render() call.
+router.use((req, res, next) => {
+  res.locals.user = req.session.user || null;
+  next();
+});
 
 // ─── GET /portal ──────────────────────────────────────────────────────────────
 // Renders the Issuer Portal — a server-side rendered admin dashboard
@@ -117,9 +137,12 @@ router.get('/docs', async (req, res, next) => {
       { method: 'GET', path: '/api/dashboard/kpi', description: 'KPI numbers only', group: '📈 Dashboard' },
 
       // Portal (SSR)
-      { method: 'GET', path: '/portal',            description: 'Server-rendered issuer portal (EJS)', group: '🌐 Portal (SSR)' },
-      { method: 'GET', path: '/portal/report/:id', description: 'Printable credential verification report', group: '🌐 Portal (SSR)' },
-      { method: 'GET', path: '/api-docs',          description: 'This page — live API documentation', group: '🌐 Portal (SSR)' },
+      { method: 'GET',  path: '/portal',            description: 'Server-rendered issuer portal (EJS)', group: '🌐 Portal (SSR)' },
+      { method: 'GET',  path: '/portal/report/:id', description: 'Printable credential verification report', group: '🌐 Portal (SSR)' },
+      { method: 'GET',  path: '/portal/login',      description: 'Portal login page', group: '🌐 Portal (SSR)' },
+      { method: 'POST', path: '/portal/login',      description: 'Authenticate with email + password', group: '🌐 Portal (SSR)' },
+      { method: 'GET',  path: '/portal/logout',     description: 'Destroy session and log out', group: '🌐 Portal (SSR)' },
+      { method: 'GET',  path: '/api-docs',          description: 'This page — live API documentation', group: '🌐 Portal (SSR)' },
     ];
 
     res.render('api-docs', {
@@ -134,3 +157,4 @@ router.get('/docs', async (req, res, next) => {
 });
 
 module.exports = router;
+
