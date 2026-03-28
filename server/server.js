@@ -10,6 +10,7 @@ const methodOverride = require('method-override'); // NPM: PUT/DELETE from HTML 
 const mongoose       = require('mongoose');         // NPM: MongoDB ODM (Lectures 33-36)
 const session        = require('express-session'); // NPM: Session management (Lectures 37-40)
 const MongoStore     = require('connect-mongo');   // NPM: MongoDB session store (Lectures 37-40)
+const passport       = require('passport');         // NPM: Authentication framework (Lectures 41-44)
 
 // ─── DATABASE CONNECTION (Lectures 33-36) ─────────────────────────────────────
 const { connect: connectDB, getStatus: getDbStatus } = require('./config/database');
@@ -22,6 +23,7 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const requestId      = require('./middleware/requestId');     // UUID tracing
 const { globalLimiter } = require('./middleware/rateLimiter'); // rate limiting
 const flash          = require('./middleware/flash');         // flash messages (Lectures 37-40)
+const { jwtAuth }    = require('./middleware/auth');          // JWT guard (Lectures 41-44)
 
 // ─── IMPORTING ROUTE MODULES ──────────────────────────────────────────────────
 // express.Router() instances — each handles a namespace of routes
@@ -32,6 +34,7 @@ const activityRoutes   = require('./routes/activity');    // /api/activity
 const dashboardRoutes  = require('./routes/dashboard');   // /api/dashboard
 const portalRoutes     = require('./routes/portal');      // /portal (SSR — Lectures 29-32)
 const authPortalRoutes = require('./routes/auth-portal'); // /portal auth (Lectures 37-40)
+const authRoutes       = require('./routes/auth');        // /api/auth (Lectures 41-44)
 
 // ─── ENSURE DATA DIRECTORY EXISTS (File Handling — Lectures 5-8) ─────────────
 if (!fs.existsSync(config.DATA_DIR)) {
@@ -132,7 +135,14 @@ app.use(session({
 // Copies one-time messages from session to res.locals for EJS templates
 app.use(flash);
 
-// ── 2.8 RATE LIMITING ─────────────────────────────────────────────────────────
+// ── 2.8 PASSPORT.JS INITIALIZATION (Lectures 41-44) ─────────────────────────
+// Passport must be initialized AFTER session middleware.
+// We don't use passport sessions for API auth (JWT is stateless),
+// but Passport still needs to be initialized as middleware.
+app.use(passport.initialize());
+require('./config/passport')(passport); // register Local + JWT strategies
+
+// ── 2.9 RATE LIMITING ─────────────────────────────────────────────────────────
 // Global: 100 requests per 15 min per IP — protects against DDoS
 app.use(globalLimiter);
 
@@ -192,12 +202,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// inside these router files (routes/*.js)
-app.use('/api/credentials', credentialRoutes); // routes/credentials.js
-app.use('/api/identity',    identityRoutes);   // routes/identity.js
-app.use('/api/issuers',     issuerRoutes);     // routes/issuer.js
-app.use('/api/activity',    activityRoutes);   // routes/activity.js
-app.use('/api/dashboard',   dashboardRoutes);  // routes/dashboard.js
+// ── API Auth Routes (Lectures 41-44) — PUBLIC (no JWT guard) ─────────────────
+app.use('/api/auth',        authRoutes);           // /api/auth/register, /api/auth/login, /api/auth/me
+
+// ── JWT-Protected API Routes (Lectures 41-44) ────────────────────────────────
+// All routes below require a valid JWT Bearer token in the Authorization header.
+// /api/auth and /api/health remain public.
+app.use('/api/credentials', jwtAuth, credentialRoutes); // routes/credentials.js
+app.use('/api/identity',    jwtAuth, identityRoutes);   // routes/identity.js
+app.use('/api/issuers',     jwtAuth, issuerRoutes);     // routes/issuer.js
+app.use('/api/activity',    jwtAuth, activityRoutes);   // routes/activity.js
+app.use('/api/dashboard',   jwtAuth, dashboardRoutes);  // routes/dashboard.js
 
 // ═════════════════════════════════════════════════════════════════
 // SERVER-SIDE RENDERED ROUTES (Lectures 29-32 + 37-40)
@@ -231,7 +246,7 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║            SOVEREIGN — SSI Platform Backend                 ║');
-  console.log('║            Node.js + Express   Lectures 1-40                ║');
+  console.log('║            Node.js + Express   Lectures 1-44                ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log(`║  Server  : http://${config.HOST}:${config.PORT}                              ║`);
   console.log(`║  Env     : ${config.NODE_ENV.padEnd(51)}║`);
@@ -258,7 +273,14 @@ app.listen(config.PORT, config.HOST, () => {
   console.log('║  ✔ Mongoose ODM connected     ✔ Graceful shutdown          ║');
   console.log('║  ✔ Credential schema          ✔ Identity (DID) schema      ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
-  console.log('║  API Endpoints                                             ║');
+  console.log('║  JWT Auth + Passport.js (Lectures 41-44)                    ║');
+  console.log('║  ✔ Passport local + JWT        ✔ Role-based access          ║');
+  console.log('║  ✔ bcrypt (cost 12) hashing    ✔ 24h token expiry           ║');
+  console.log(`║  POST /api/auth/register         (create account)            ║`);
+  console.log(`║  POST /api/auth/login            (get JWT token)             ║`);
+  console.log(`║  GET  /api/auth/me               (verify token)              ║`);
+  console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  API Endpoints (JWT protected)                              ║');
   console.log(`║  GET  /api/health                (health + DB status)       ║`);
   console.log(`║  *    /api/credentials           (credential CRUD)          ║`);
   console.log(`║  *    /api/identity              (DID management)           ║`);

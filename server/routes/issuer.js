@@ -8,6 +8,7 @@ const Credential = require('../models/Credential');
 const db         = require('../utils/db');
 const { issueCredential, isValidDID } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
+const { requireRole }  = require('../middleware/auth'); // RBAC (Lectures 41-44)
 
 // ─── GET /api/issuers ─────────────────────────────────────────────────────────
 router.get('/', asyncWrapper(async (req, res) => {
@@ -71,7 +72,8 @@ router.post('/', asyncWrapper(async (req, res) => {
 
 // ─── POST /api/issuers/:id/issue ──────────────────────────────────────────────
 // Issue a single Verifiable Credential to a holder DID
-router.post('/:id/issue', asyncWrapper(async (req, res) => {
+// Lectures 41-44: Only issuers and verifiers can issue credentials
+router.post('/:id/issue', requireRole('issuer', 'verifier'), asyncWrapper(async (req, res) => {
   const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
@@ -98,7 +100,8 @@ router.post('/:id/issue', asyncWrapper(async (req, res) => {
 
 // ─── POST /api/issuers/:id/bulk ────────────────────────────────────────────────
 // Bulk issue credentials to a list of holder DIDs
-router.post('/:id/bulk', asyncWrapper(async (req, res) => {
+// Lectures 41-44: Only issuers can bulk-issue
+router.post('/:id/bulk', requireRole('issuer'), asyncWrapper(async (req, res) => {
   const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
