@@ -7,6 +7,9 @@
  *
  * The Vite dev server proxies /api/* → http://localhost:3001/api/*
  * (configured in vite.config.ts)
+ * 
+ * Lectures 41-44: All requests include JWT Authorization header
+ * when the user is authenticated (via authService).
  */
 
 import type {
@@ -15,17 +18,30 @@ import type {
   ProofRequest,
 } from '../data/mockData';
 
+import { authService } from './authService';
+
 // ─── Base fetch wrapper ───────────────────────────────────────────────────────
 const BASE = '/api';
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  // ── Build headers with optional JWT token (Lectures 41-44) ────────────────
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Attach JWT token if authenticated — stored in memory (not localStorage)
+  const token = authService.getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: { message: res.statusText } }));
-    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    throw new Error(err?.error?.message || err?.error || `HTTP ${res.status}`);
   }
   const json = await res.json();
   return json.data as T;
