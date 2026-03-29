@@ -13,6 +13,7 @@ const db         = require('../utils/db');
 const { generateZKPProof, issueCredential } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
 const { validateBody } = require('../middleware/validate');
+const { notifyCredentialIssued, broadcastActivity } = require('../utils/socketManager');
 
 // ─── GET /api/credentials ─────────────────────────────────────────────────────
 // ROUTE HANDLER: returns all credentials, optionally filtered by query params
@@ -119,6 +120,18 @@ router.post('/', validateBody([
     expiryDate: null,
     claims: claims || [],
     w3cCredential,
+  });
+
+  // ── Socket.io: Notify holder in real-time (Lectures 45-48) ──────────────────
+  if (newCredential.holderDID) {
+    notifyCredentialIssued(req.app, newCredential.holderDID, newCredential);
+  }
+  broadcastActivity(req.app, {
+    type: 'credential_issued',
+    title: `New credential: ${newCredential.type}`,
+    description: `${newCredential.issuer} issued a ${newCredential.type} credential`,
+    actor: newCredential.issuer,
+    timestamp: new Date().toISOString(),
   });
 
   // RESPONSE METHOD: res.status(201).json() — 201 Created

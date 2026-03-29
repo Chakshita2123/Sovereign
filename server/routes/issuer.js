@@ -9,6 +9,7 @@ const db         = require('../utils/db');
 const { issueCredential, isValidDID } = require('../utils/didUtils');
 const { asyncWrapper } = require('../middleware/errorHandler');
 const { requireRole }  = require('../middleware/auth'); // RBAC (Lectures 41-44)
+const { notifyCredentialIssued, broadcastActivity } = require('../utils/socketManager');
 
 // ─── GET /api/issuers ─────────────────────────────────────────────────────────
 router.get('/', asyncWrapper(async (req, res) => {
@@ -94,6 +95,16 @@ router.post('/:id/issue', requireRole('issuer', 'verifier'), asyncWrapper(async 
     { id: issuer.id },
     { $inc: { credentialsIssued: 1 } }
   );
+
+  // ── Socket.io: Notify holder in real-time (Lectures 45-48) ──────────────────
+  notifyCredentialIssued(req.app, holderDID, credential);
+  broadcastActivity(req.app, {
+    type: 'credential_issued',
+    title: `Credential issued by ${issuer.name}`,
+    description: `${issuer.name} issued a ${credentialType} to ${holderDID}`,
+    actor: issuer.name,
+    timestamp: new Date().toISOString(),
+  });
 
   res.status(201).json({ success: true, data: credential });
 }));

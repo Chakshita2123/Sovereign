@@ -1,5 +1,6 @@
 
 const express        = require('express');         // NPM: installed via `npm install express`
+const http           = require('http');             // Built-in: HTTP server (for Socket.io)
 const cors           = require('cors');            // NPM: Cross-Origin Resource Sharing
 const morgan         = require('morgan');          // NPM: HTTP request logger
 const path           = require('path');            // Built-in: file path utilities
@@ -11,6 +12,7 @@ const mongoose       = require('mongoose');         // NPM: MongoDB ODM (Lecture
 const session        = require('express-session'); // NPM: Session management (Lectures 37-40)
 const MongoStore     = require('connect-mongo');   // NPM: MongoDB session store (Lectures 37-40)
 const passport       = require('passport');         // NPM: Authentication framework (Lectures 41-44)
+const { Server }     = require('socket.io');        // NPM: Real-time WebSocket server (Lectures 45-48)
 
 // ─── DATABASE CONNECTION (Lectures 33-36) ─────────────────────────────────────
 const { connect: connectDB, getStatus: getDbStatus } = require('./config/database');
@@ -45,6 +47,47 @@ if (!fs.existsSync(config.DATA_DIR)) {
 // express() returns an Application object. This is the core of Express.
 // Under the hood, it wraps Node's http.createServer() (which we saw in http-demo.js)
 const app = express();
+
+// ── HTTP SERVER + SOCKET.IO (Lectures 45-48) ─────────────────────────────────
+// Socket.io requires access to the raw HTTP server, so we create it from
+// the Express app and pass both to listen(). This is the standard pattern
+// for adding WebSocket support to an Express application.
+const server = http.createServer(app);
+const io     = new Server(server, {
+  cors: {
+    origin: config.ALLOWED_ORIGINS,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  }
+});
+
+// Store io on the app object so routes can access it via req.app.get('io')
+// This avoids passing io as a parameter through every route file
+app.set('io', io);
+
+// ── SOCKET.IO CONNECTION HANDLER (Lectures 45-48) ─────────────────────────────
+// Room architecture: each holder joins a room named `wallet:{did}`
+// This allows targeted event delivery — only the relevant holder gets notified
+io.on('connection', (socket) => {
+  console.log(`⚡ Socket connected: ${socket.id}`);
+
+  // Each holder joins their own room by DID so events are targeted
+  socket.on('join:wallet', ({ did }) => {
+    if (!did) return;
+    socket.join(`wallet:${did}`);
+    console.log(`  → joined room wallet:${did}`);
+  });
+
+  // Join the global dashboard room for broadcast events
+  socket.on('join:dashboard', () => {
+    socket.join('dashboard');
+    console.log(`  → joined room dashboard`);
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log(`  ⚡ Socket disconnected: ${socket.id} (${reason})`);
+  });
+});
 
 // ── CONNECT TO MONGODB (Lectures 33-36) ───────────────────────────────────────
 // Non-blocking — server starts immediately, DB connects in background.
@@ -242,11 +285,14 @@ app.get('*', (req, res) => {
 app.use(notFound);      // 404 handler — route not matched
 app.use(errorHandler);  // global error handler — logs and returns JSON
 
-app.listen(config.PORT, config.HOST, () => {
+// ── START SERVER (Lectures 45-48: use server.listen instead of app.listen) ────
+// Socket.io shares the same HTTP server as Express, so we call server.listen()
+// instead of app.listen(). This is the only change needed for WebSocket support.
+server.listen(config.PORT, config.HOST, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║            SOVEREIGN — SSI Platform Backend                 ║');
-  console.log('║            Node.js + Express   Lectures 1-44                ║');
+  console.log('║            Node.js + Express   Lectures 1-48               ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log(`║  Server  : http://${config.HOST}:${config.PORT}                              ║`);
   console.log(`║  Env     : ${config.NODE_ENV.padEnd(51)}║`);
@@ -280,6 +326,11 @@ app.listen(config.PORT, config.HOST, () => {
   console.log(`║  POST /api/auth/login            (get JWT token)             ║`);
   console.log(`║  GET  /api/auth/me               (verify token)              ║`);
   console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  Socket.io Real-Time (Lectures 45-48)                       ║');
+  console.log('║  ✔ WebSocket server (Socket.io) ✔ Room-based targeting      ║');
+  console.log('║  ✔ Live credential events       ✔ Proof notifications       ║');
+  console.log('║  Events: credential:issued, proof:approved, activity:new    ║');
+  console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log('║  API Endpoints (JWT protected)                              ║');
   console.log(`║  GET  /api/health                (health + DB status)       ║`);
   console.log(`║  *    /api/credentials           (credential CRUD)          ║`);
@@ -299,4 +350,4 @@ process.on('uncaughtException', (err) => {
   process.exit(1); // mandatory restart after uncaught exception
 });
 
-module.exports = app; // export for testing
+module.exports = { app, server, io }; // export for testing

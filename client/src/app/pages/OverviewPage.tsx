@@ -1,3 +1,12 @@
+/**
+ * OverviewPage.tsx — Dashboard Overview
+ * Lectures 45-48: Live activity feed updates via Socket.io
+ * 
+ * This page now subscribes to Socket.io events and prepends new activities
+ * to the feed in real-time. When a credential is issued or a proof is approved
+ * anywhere in the system, the activity feed updates instantly — no polling.
+ */
+
 import { motion } from 'motion/react';
 import { KPIStatPod } from '../components/credentials/KPIStatPod';
 import { SecurityScoreRing } from '../components/credentials/SecurityScoreRing';
@@ -13,6 +22,7 @@ import { Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { ShareCredentialModal } from '../components/modals/ShareCredentialModal';
 import { dashboardApi, credentialsApi } from '../services/api';
+import { useSocket } from '../hooks/useSocket';
 
 export function OverviewPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -24,6 +34,9 @@ export function OverviewPage() {
   const [loading, setLoading] = useState(true);
   // backendStatus tracks whether live API or fallback mock data is in use
   const [_backendStatus, setBackendStatus] = useState<'live' | 'mock'>('mock');
+
+  // ── Socket.io: Subscribe to live events (Lectures 45-48) ────────────────────
+  const { onEvent, isConnected } = useSocket();
 
   useEffect(() => {
     async function loadData() {
@@ -50,16 +63,94 @@ export function OverviewPage() {
     loadData();
   }, []);
 
+  // ── Socket.io: Live credential issued events ─────────────────────────────────
+  useEffect(() => {
+    const cleanup = onEvent('credential:issued', (data: unknown) => {
+      const { credential, timestamp } = data as { credential: Credential; timestamp: string };
+      // Prepend new credential to the list
+      if (credential) {
+        setCredentials(prev => [credential, ...prev]);
+        // Update KPI count
+        setKpiData(prev => ({
+          ...prev,
+          totalCredentials: prev.totalCredentials + 1,
+        }));
+      }
+      // Add to activity feed
+      setActivities(prev => [{
+        id: `live-${Date.now()}`,
+        type: 'credential_issued',
+        title: `New credential: ${credential?.type || 'Unknown'}`,
+        description: `Issued by ${credential?.issuer || 'Unknown'}`,
+        timestamp: timestamp || new Date().toISOString(),
+        actor: credential?.issuer || 'System',
+        icon: '🔐',
+      } as Activity, ...prev]);
+    });
+    return cleanup;
+  }, [onEvent]);
+
+  // ── Socket.io: Live proof approved events ────────────────────────────────────
+  useEffect(() => {
+    const cleanup = onEvent('proof:approved', (data: unknown) => {
+      const { proofId, timestamp } = data as { proofId: string; timestamp: string };
+      // Remove approved request from pending list
+      setProofRequests(prev => prev.filter(r => r.id !== proofId));
+      // Add to activity feed
+      setActivities(prev => [{
+        id: `live-${Date.now()}`,
+        type: 'proof_approved',
+        title: 'Proof request approved',
+        description: `Proof ${proofId || ''} was verified`,
+        timestamp: timestamp || new Date().toISOString(),
+        actor: 'System',
+        icon: '✅',
+      } as Activity, ...prev]);
+    });
+    return cleanup;
+  }, [onEvent]);
+
+  // ── Socket.io: General activity broadcast ────────────────────────────────────
+  useEffect(() => {
+    const cleanup = onEvent('activity:new', (data: unknown) => {
+      const { activity } = data as { activity: Activity };
+      if (activity) {
+        setActivities(prev => [{
+          ...activity,
+          id: activity.id || `live-${Date.now()}`,
+        }, ...prev]);
+      }
+    });
+    return cleanup;
+  }, [onEvent]);
+
   const recentCredentials = credentials.slice(0, 3);
 
   return (
     <div className="space-y-6">
       {/* Page title */}
-      <div>
-        <h1 className="text-[#F0F4FF] mb-2">Dashboard Overview</h1>
-        <p className="text-[#7A8FA6] text-sm">
-          Welcome back, Alex. Here's what's happening with your digital identity.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[#F0F4FF] mb-2">Dashboard Overview</h1>
+          <p className="text-[#7A8FA6] text-sm">
+            Welcome back, Alex. Here's what's happening with your digital identity.
+          </p>
+        </div>
+        {/* Socket.io connection indicator */}
+        {isConnected && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(0,255,136,0.06)] border border-[rgba(0,255,136,0.15)]"
+          >
+            <motion.span
+              className="w-2 h-2 rounded-full bg-[#00FF88]"
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <span className="text-xs text-[#00FF88] font-medium">Live</span>
+          </motion.div>
+        )}
       </div>
 
       {/* KPI Stats Row */}
@@ -123,14 +214,21 @@ export function OverviewPage() {
           </div>
         </motion.div>
 
-        {/* Recent Activity Feed */}
+        {/* Recent Activity Feed — now updates live via Socket.io */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="glass-card rounded-2xl p-6"
         >
-          <h2 className="text-[#F0F4FF] mb-4">Recent Activity</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[#F0F4FF]">Recent Activity</h2>
+            {isConnected && (
+              <span className="text-[10px] text-[#00FF88] uppercase tracking-wider font-medium">
+                ● Live
+              </span>
+            )}
+          </div>
           <div className="space-y-0 max-h-[400px] overflow-y-auto pr-2">
             {activities.slice(0, 8).map((activity, idx) => (
               <ActivityFeedItem

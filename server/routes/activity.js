@@ -10,6 +10,7 @@ const Activity     = require('../models/Activity');
 const ProofRequest = require('../models/ProofRequest');
 const db           = require('../utils/db');
 const { asyncWrapper } = require('../middleware/errorHandler');
+const { notifyProofApproved, broadcastActivity } = require('../utils/socketManager');
 
 // GET /api/activity — all activity events (supports ?limit=N&type=X)
 router.get('/', asyncWrapper(async (req, res) => {
@@ -49,6 +50,18 @@ router.post('/proof-requests/:id/approve', asyncWrapper(async (req, res) => {
     { $set: { status: 'approved' } },
     { new: true, lean: true }
   );
+
+  // ── Socket.io: Notify holder that proof was approved (Lectures 45-48) ───────
+  if (updated.holderDid || updated.holder) {
+    notifyProofApproved(req.app, updated.holderDid || updated.holder, updated.id);
+  }
+  broadcastActivity(req.app, {
+    type: 'proof_approved',
+    title: `Proof request approved`,
+    description: `Proof request ${updated.id} was approved`,
+    actor: 'System',
+    timestamp: new Date().toISOString(),
+  });
 
   res.json({ success: true, data: { ...updated, approvedAt: new Date().toISOString() }, message: 'ZKP proof generated and transmitted' });
 }));

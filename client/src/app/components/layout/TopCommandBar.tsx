@@ -1,6 +1,19 @@
-import { Search, Bell, Wifi } from 'lucide-react';
+/**
+ * TopCommandBar.tsx — Dashboard Top Navigation Bar
+ * Lectures 45-48: Live notification badge powered by Socket.io
+ * 
+ * The Bell icon now shows a real-time unread count that increments
+ * whenever a Socket.io event is received (credential:issued, proof:approved, etc.)
+ * Clicking the bell resets the counter.
+ */
+
+import { Search, Bell, Wifi, WifiOff } from 'lucide-react';
+import { useSocket } from '../../hooks/useSocket';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function TopCommandBar() {
+  const { isConnected, unreadCount, resetUnread } = useSocket();
+
   return (
     <div className="h-10 sticky top-0 z-40 bg-[rgba(5,13,26,0.85)] backdrop-blur-2xl border-b border-[rgba(0,194,255,0.08)]">
       <div className="h-full px-6 flex items-center gap-6">
@@ -26,16 +39,56 @@ export function TopCommandBar() {
 
         {/* Right side */}
         <div className="flex items-center gap-4 ml-auto">
-          {/* Network Status */}
+          {/* Network Status — now shows Socket.io connection state */}
           <div className="flex items-center gap-2">
-            <Wifi className="w-4 h-4 text-[#00FF88]" />
-            <span className="text-xs text-[#7A8FA6]">Sovrin MainNet</span>
+            {isConnected ? (
+              <Wifi className="w-4 h-4 text-[#00FF88]" />
+            ) : (
+              <WifiOff className="w-4 h-4 text-[#FF4444]" />
+            )}
+            <span className="text-xs text-[#7A8FA6]">
+              {isConnected ? 'Sovrin MainNet' : 'Reconnecting...'}
+            </span>
+            {/* Live indicator dot — pulses when connected */}
+            {isConnected && (
+              <motion.span
+                className="w-1.5 h-1.5 rounded-full bg-[#00FF88]"
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            )}
           </div>
 
-          {/* Notifications */}
-          <button className="relative p-1 hover:bg-[rgba(0,194,255,0.04)] rounded-lg transition-colors">
+          {/* Notifications — live unread count from Socket.io */}
+          <button
+            id="notification-bell"
+            onClick={resetUnread}
+            className="relative p-1 hover:bg-[rgba(0,194,255,0.04)] rounded-lg transition-colors"
+          >
             <Bell className="w-5 h-5 text-[#7A8FA6]" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-[#FF4444] rounded-full" />
+            
+            <AnimatePresence>
+              {unreadCount > 0 && (
+                <motion.span
+                  key="badge"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-gradient-to-r from-[#FF4444] to-[#FF6B35] rounded-full text-white text-[10px] font-bold"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
+
+            {/* Pulse ring animation on new notification */}
+            {unreadCount > 0 && (
+              <motion.span
+                className="absolute -top-1 -right-1 w-[18px] h-[18px] rounded-full border border-[#FF4444]"
+                animate={{ scale: [1, 1.8], opacity: [0.6, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+              />
+            )}
           </button>
 
           {/* User Avatar */}
