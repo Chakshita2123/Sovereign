@@ -1,24 +1,30 @@
 # Sovereign — Personal Data Wallet (SSI Platform)
-### Full-Stack Integration | Project Based Evaluation-I | Lectures 1-24
+### Full-Stack Integration | Lectures 1-48 | Middleware · SSR · MongoDB · Sessions · JWT · Socket.io
 
 ---
 
-## 🚀 Quick Start (3 commands)
+## 🚀 Quick Start
 
 ```bash
-# 1. Install all dependencies
+# 1. Install all dependencies (root, client, and server)
 npm run install:all
 
-# 2. Seed the mock dataset (run once)
+# 2. Configure environment
+cp server/.env.example server/.env
+# Edit server/.env → set MONGO_URI, SESSION_SECRET, JWT_SECRET
+
+# 3. Seed the database (run once after MongoDB is connected)
 npm run seed
 
-# 3. Start both frontend + backend together
+# 4. Start both frontend + backend together
 npm run dev
 ```
 
 - **Frontend (React/Vite):** http://localhost:5173
 - **Backend (Express API):** http://localhost:3001
+- **SSR Portal:** http://localhost:3001/portal
 - **API Health:** http://localhost:3001/api/health
+- **API Docs:** http://localhost:3001/api-docs
 
 ---
 
@@ -26,162 +32,215 @@ npm run dev
 
 ```
 sovereign/
-├── package.json          ← Root: runs both client + server via concurrently
+├── package.json            ← Root: runs both client + server via concurrently
 │
-├── client/               ← React + Vite + TypeScript Frontend
+├── client/                 ← React + Vite + TypeScript Frontend
 │   ├── src/
 │   │   └── app/
-│   │       ├── pages/            ← Dashboard pages
-│   │       ├── components/       ← UI components (shadcn/ui + Radix)
+│   │       ├── pages/              ← Dashboard, Wallet, Identity pages
+│   │       ├── components/         ← UI components (shadcn/ui + Radix)
 │   │       ├── services/
-│   │       │   └── api.ts        ← ★ API service layer (connects to backend)
+│   │       │   ├── api.ts          ← ★ API service layer (JWT auth headers)
+│   │       │   └── authService.ts  ← JWT token management (in-memory)
+│   │       ├── hooks/
+│   │       │   ├── useSocket.ts    ← Socket.io event subscription hook
+│   │       │   └── SocketContext.tsx ← Shared WebSocket provider
 │   │       └── data/
-│   │           └── mockData.ts   ← Fallback data (used if backend is offline)
-│   └── vite.config.ts    ← Proxy: /api → http://localhost:3000
+│   │           └── mockData.ts     ← Fallback data (if backend offline)
+│   └── vite.config.ts      ← Proxy: /api → http://localhost:3001
 │
-└── server/               ← Node.js + Express Backend
-    ├── server.js         ← ★ Main Express app (Lectures 17-24)
-    ├── http-demo.js      ← Raw Node.js HTTP module demo (Lectures 13-16)
-    ├── file-handling-demo.js ← fs module demo (Lectures 5-8)
-    ├── config/index.js   ← module.exports demo (Lectures 13-16)
+└── server/                 ← Node.js + Express Backend
+    ├── server.js           ← ★ Main Express app + Socket.io
+    ├── config/
+    │   ├── index.js        ← Environment config (dotenv)
+    │   ├── database.js     ← MongoDB connection + graceful shutdown
+    │   └── passport.js     ← Passport.js Local + JWT strategies
     ├── middleware/
-    │   ├── logger.js     ← Custom middleware (Lectures 17-20)
-    │   └── errorHandler.js ← Exception handling (Lectures 21-24)
+    │   ├── auth.js         ← JWT guard + role-based access control
+    │   ├── errorHandler.js ← Structured JSON errors + 404 handler
+    │   ├── flash.js        ← One-time session messages
+    │   ├── logger.js       ← Custom request logger + file logging
+    │   ├── rateLimiter.js  ← Global (100/15min) + Auth (10/15min)
+    │   ├── requestId.js    ← UUID tracing (X-Request-Id header)
+    │   ├── sessionAuth.js  ← Session-based auth guard for portal
+    │   └── validate.js     ← express-validator middleware
+    ├── models/
+    │   ├── User.js         ← bcrypt hashing, role enum, virtual password
+    │   ├── Credential.js   ← W3C Verifiable Credentials
+    │   ├── Identity.js     ← DIDs with key rotation history
+    │   ├── Issuer.js       ← Credential issuers (gov, university, etc.)
+    │   ├── Activity.js     ← TTL-indexed activity feed (90-day expiry)
+    │   └── ProofRequest.js ← Verification requests from verifiers
     ├── routes/
-    │   ├── credentials.js ← CRUD + ZKP endpoints (Lectures 21-24)
-    │   ├── identity.js   ← DID management (Lectures 21-24)
-    │   ├── issuer.js     ← Issuer portal API (Lectures 21-24)
-    │   ├── activity.js   ← Activity feed (Lectures 21-24)
-    │   └── dashboard.js  ← Aggregated KPIs (Lectures 21-24)
+    │   ├── auth.js         ← JWT register/login/me
+    │   ├── auth-portal.js  ← Session login/logout for SSR portal
+    │   ├── credentials.js  ← CRUD + ZKP + share endpoints
+    │   ├── identity.js     ← DID management + key rotation
+    │   ├── issuer.js       ← Issuer portal + bulk issuance
+    │   ├── activity.js     ← Activity feed + proof request actions
+    │   ├── dashboard.js    ← Aggregated KPIs
+    │   └── portal.js       ← EJS-rendered admin pages
     ├── utils/
-    │   ├── seedData.js   ← ★ Mock dataset (Lectures 5-8)
-    │   ├── fileDb.js     ← File-based CRUD (Lectures 5-8, 13-16)
-    │   └── didUtils.js   ← DID/VC business logic (Lectures 13-16)
-    └── data/             ← JSON data files (created by seedData.js)
-        ├── credentials.json
-        ├── dids.json
-        ├── issuers.json
-        ├── activities.json
-        ├── proof-requests.json
-        └── kpi.json
+    │   ├── db.js           ← Mongoose CRUD utility
+    │   ├── socketManager.js ← Socket.io event emitters
+    │   ├── didUtils.js     ← DID/VC business logic
+    │   ├── seedData.js     ← ★ Mock dataset generator
+    │   ├── migrate.js      ← JSON-to-MongoDB migration script
+    │   └── fileDb.js       ← Legacy file-based CRUD (deprecated)
+    ├── views/              ← EJS templates (SSR portal)
+    └── data/               ← JSON data files + logs
 ```
 
 ---
 
 ## 📚 Curriculum Coverage Map
 
-| Lectures | Topics | Files in This Project |
+| Lectures | Topics | Implementation |
 |---|---|---|
-| **1-4** | Client-Server Architecture, request handling | README, `server.js` (architecture comments) |
-| **5-8** | Node.js setup, fs module, file handling | `file-handling-demo.js`, `utils/seedData.js`, `utils/fileDb.js` |
-| **9-12** | Node.js advantages, async I/O, event loop | `utils/fileDb.js` (async readFile), `utils/didUtils.js` |
-| **13-16** | HTTP module, endpoints, NPM, modules | `http-demo.js`, `config/index.js`, `utils/didUtils.js`, `package.json` |
-| **17-20** | Express framework, middleware chain | `server.js` (top half), `middleware/logger.js` |
-| **21-24** | Static files, routing, response methods, exceptions | `server.js` (full), all `routes/`, `middleware/errorHandler.js` |
+| **1-4** | Client-Server Architecture | `server.js` architecture, README |
+| **5-8** | Node.js, fs module, file handling | `file-handling-demo.js`, `utils/seedData.js`, `utils/fileDb.js` |
+| **9-12** | Async I/O, event loop | `utils/fileDb.js` (async), `utils/didUtils.js` |
+| **13-16** | HTTP module, NPM, modules | `http-demo.js`, `config/index.js`, `package.json` |
+| **17-20** | Express, middleware chain | `server.js`, `middleware/logger.js` |
+| **21-24** | Routing, response methods, exceptions | All `routes/`, `middleware/errorHandler.js` |
+| **25-28** | Production middleware | Helmet, rate limiting, validation, compression |
+| **29-32** | EJS, SSR vs CSR | `views/`, `routes/portal.js` |
+| **33-36** | MongoDB, Mongoose ODM | `config/database.js`, all `models/`, `utils/db.js` |
+| **37-40** | Sessions, cookies | `express-session`, MongoStore, `middleware/sessionAuth.js` |
+| **41-44** | JWT, Passport.js, bcrypt | `config/passport.js`, `middleware/auth.js`, `models/User.js` |
+| **45-48** | Socket.io, WebSockets | `utils/socketManager.js`, `hooks/useSocket.ts` |
 
 ---
 
-## 🗄️ Mock Dataset
+## 🔐 Authentication
 
-The dataset is modelled on **Indian government issuers and institutions** since real authorisation 
-from government bodies is not available for this evaluation project.
+### JWT API Auth (Lectures 41-44)
+```bash
+# Register
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123","name":"Test User"}'
 
-### Personas (from PRD)
-| Persona | Holder | Credentials |
-|---|---|---|
-| Aarav Sharma | Job Applicant | Aadhaar, IIT Delhi B.Tech, Infosys Employment, PAN, CBSE XII, Health Insurance |
-| Dr. Priya Venkataraman | Doctor | NMC Medical Registration (expiring) |
-| Raju Bhatia | Govt Service User | Parivahan Driving Licence |
+# Login → get JWT token
+curl -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
 
-### Issuers in Dataset
-- **UIDAI** — Aadhaar Identity (Government)
-- **IIT Delhi** — B.Tech Degree (University)
-- **Infosys** — Employment Verification (Employer)
-- **NMC** — Medical Registration (Regulator)
-- **Parivahan Sewa** — Driving Licence (Government)
-- **Income Tax Dept** — PAN Card (Government)
-- **CBSE** — Class XII Marksheet (Education Board)
-- **HDFC ERGO** — Health Insurance (Insurance)
+# Use token on protected routes
+curl http://localhost:3001/api/credentials \
+  -H "Authorization: Bearer <your-token>"
+```
 
-### Verifiers in Mock Proof Requests
-- Infosys HR Portal (hiring)
-- HDFC Bank Digital KYC (account opening)
-- Ola Cabs Driver Verification (gig onboarding)
+### Session Portal Auth (Lectures 37-40)
+Visit http://localhost:3001/portal/login and authenticate with the admin credentials from `.env`.
 
 ---
 
 ## 🔌 API Endpoints
 
+All `/api/*` routes (except `/api/auth` and `/api/health`) require a JWT Bearer token.
+
 ```
-GET  /api/health                       Server health check
-GET  /api/dashboard                    Full overview data (KPIs + activities)
-GET  /api/dashboard/kpi                Just KPI numbers
+# System
+GET  /api/health                            Health check + DB status
 
-GET  /api/credentials                  All credentials
-GET  /api/credentials/:id              Single credential
-POST /api/credentials                  Create credential
-PUT  /api/credentials/:id              Update credential
-DELETE /api/credentials/:id            Delete credential
-POST /api/credentials/:id/share        Share (generates ZKP proof)
-POST /api/credentials/:id/zkp          Generate selective disclosure proof
+# Auth (public, rate-limited: 10 req/15 min)
+POST /api/auth/register                     Create account → JWT
+POST /api/auth/login                        Authenticate → JWT
+GET  /api/auth/me                           Verify token (protected)
 
-GET  /api/identity                     All DIDs
-GET  /api/identity/:did                Resolve a DID
-POST /api/identity                     Create new DID
-POST /api/identity/:did/rotate         Key rotation
-GET  /api/identity/:did/score          Identity trust score
+# Credentials (JWT required)
+GET    /api/credentials                     List all (supports ?status, ?type, ?search)
+GET    /api/credentials/stats               Aggregate stats
+GET    /api/credentials/status/:stat        Filter by status
+GET    /api/credentials/:id                 Get by ID
+POST   /api/credentials                     Create (validated: title, type, issuer)
+PUT    /api/credentials/:id                 Full replace
+PATCH  /api/credentials/:id                 Partial update
+DELETE /api/credentials/:id                 Revoke and remove
+POST   /api/credentials/:id/share           Generate share token + QR
+POST   /api/credentials/:id/zkp            Generate ZKP proof
 
-GET  /api/issuers                      All issuer organisations
-GET  /api/issuers/:id                  Specific issuer
-GET  /api/issuers/:id/stats            Issuer statistics
-POST /api/issuers/:id/issue            Issue a credential
-POST /api/issuers/:id/bulk             Bulk issuance
-GET  /api/issuers/:id/export           Export (file download demo)
+# Identity / DID (JWT required)
+GET    /api/identity/:did                   Resolve DID to DID Document
+GET    /api/identity/:did/score             Security score breakdown
+POST   /api/identity/create                 Create new DID (validated: ownerName)
+PATCH  /api/identity/:did/rotate            Rotate signing keys
 
-GET  /api/activity                     Activity feed
-POST /api/activity                     Log activity event
-GET  /api/activity/proof-requests      Pending proof requests
-POST /api/activity/proof-requests/:id/approve  Approve request
-POST /api/activity/proof-requests/:id/deny     Deny request
+# Issuers (JWT required)
+GET    /api/issuers                         List all issuers
+GET    /api/issuers/:id                     Get issuer by ID
+GET    /api/issuers/:id/stats               30-day chart data
+POST   /api/issuers                         Register issuer
+POST   /api/issuers/:id/issue               Issue credential (issuer/verifier role)
+POST   /api/issuers/:id/bulk                Bulk issue (issuer role only)
+GET    /api/issuers/:id/export              Download as JSON
+
+# Activity Feed (JWT required)
+GET    /api/activity                        Feed (supports ?limit, ?type)
+GET    /api/activity/:id                    Single event
+POST   /api/activity                        Log event
+GET    /api/activity/proof-requests         List pending requests
+GET    /api/activity/proof-requests/:id     Get request
+POST   /api/activity/proof-requests/:id/approve   Approve (sends ZKP)
+POST   /api/activity/proof-requests/:id/deny      Deny
+
+# Dashboard (JWT required)
+GET    /api/dashboard                       Full KPI + stats
+GET    /api/dashboard/kpi                   KPI numbers only
+
+# Portal (session auth, SSR)
+GET    /portal                              Issuer portal (EJS)
+GET    /portal/report/:id                   Credential report (printable)
+GET    /portal/login                        Login page
+POST   /portal/login                        Authenticate
+GET    /portal/logout                       Destroy session
+GET    /api-docs                            API documentation page
 ```
 
 ---
 
-## 🏃 Running Individual Demos
+## ⚡ Real-Time Events (Socket.io)
 
-```bash
-# Raw HTTP module (Lectures 13-16) — no Express
-cd server && node http-demo.js
-# Visit: http://localhost:3001
-
-# File system operations demo (Lectures 5-8)
-cd server && node file-handling-demo.js
-
-# Main Express server only
-cd server && node server.js
-
-# Frontend only (uses mock data fallback if backend offline)
-cd client && npm run dev
-```
+| Event | Direction | Description |
+|---|---|---|
+| `credential:issued` | Server → Holder | New credential issued to wallet |
+| `proof:request` | Server → Holder | Verifier requests proof |
+| `proof:approved` | Server → Holder | Proof request was approved |
+| `credential:expiring` | Server → Holder | Credential expiring soon |
+| `activity:new` | Server → All | Broadcast activity to dashboards |
 
 ---
 
-## ⚙️ How Frontend ↔ Backend Integration Works
+## 🗄️ Mock Dataset
 
-```
-Browser (React App @ :5173)
-        ↓  fetch('/api/credentials')
-Vite Dev Server (proxy in vite.config.ts)
-        ↓  forwards to http://localhost:3001/api/credentials
-Express Server (server.js @ :3001)
-        ↓  routes/credentials.js
-        ↓  utils/fileDb.js → data/credentials.json
-        ↑  JSON response { success: true, data: [...] }
-React Component updates state → UI re-renders
-```
+Modelled on **Indian government issuers and institutions**.
 
-If the backend is **not running**, the frontend gracefully falls back to the 
-built-in `mockData.ts` — so the UI always works.
+### Issuers
+- **UIDAI** — Aadhaar (Government)
+- **IIT Delhi** — B.Tech Degree (University)
+- **Infosys** — Employment (Employer)
+- **NMC** — Medical Registration (Healthcare)
+- **Parivahan Sewa** — Driving Licence (Government)
+- **Income Tax Dept** — PAN Card (Government)
+- **CBSE** — Class XII Marksheet (Education)
+- **HDFC ERGO** — Health Insurance (Financial)
+
+---
+
+## ⚙️ Environment Variables
+
+Copy `server/.env.example` to `server/.env` and configure:
+
+| Variable | Required | Description |
+|---|---|---|
+| `MONGO_URI` | ✅ | MongoDB Atlas connection string |
+| `SESSION_SECRET` | ✅ | Signs session cookies |
+| `JWT_SECRET` | ✅ | Signs JWT access tokens |
+| `ADMIN_EMAIL` | ✅ | Portal admin email |
+| `ADMIN_PASS_HASH` | ✅ | bcrypt hash of admin password |
+| `PORT` | | Server port (default: 3001) |
+| `NODE_ENV` | | development / production |
 
 ---
 
