@@ -71,4 +71,11 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// SIGTERM is sent by Docker/Heroku/systemd — handle it the same way
+process.on('SIGTERM', async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed (SIGTERM)');
+  process.exit(0);
+});
+
 module.exports = { connect, getStatus };
