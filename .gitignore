@@ -1,7 +1,23 @@
-node_modules 
-venv/
+# Dependencies
+node_modules/
+
+# Environment (secrets)
 .env
-.env.example
+
+# OS files
+.DS_Store
+*.DS_Store
+
+# Logs
+server/data/access.log
+server/data/errors.log
+
+# Build
+dist/
+build/
+
+# Legacy
+venv/
 lib/
 site-packages/
 *.dylib
