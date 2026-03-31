@@ -63,9 +63,12 @@ const create = async (Model, data) => {
  * @returns {Promise<Object|null>}
  */
 const update = async (Model, id, updates) => {
+  // Prevent overwriting system fields via API input
+  const { _id, id: _, createdAt, __v, ...safeUpdates } = updates;
+
   const updated = await Model.findOneAndUpdate(
     { id },
-    { $set: updates },
+    { $set: safeUpdates },
     { new: true, lean: true }
   );
   return updated;
