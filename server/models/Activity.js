@@ -21,7 +21,7 @@ const activitySchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['received', 'shared', 'expiring', 'rotated', 'revoked', 'system'],
+      enum: ['received', 'shared', 'expiring', 'rotated', 'revoked', 'system', 'credential_issued', 'proof_approved', 'proof_denied', 'verification'],
     },
     title: {
       type: String,
