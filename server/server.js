@@ -271,18 +271,18 @@ app.use('/api-docs', (req, res, next) => {       // /api-docs → portal route
   portalRoutes(req, res, next);
 });
 
-// ─── Catch-All: Redirect unknown GET routes to the frontend ───────────────────
-// Any non-API GET request is sent to the frontend (React SPA)
-app.get('*', (req, res) => {
+// ─── Catch-All: Redirect unknown non-API GET routes to the frontend ──────────
+// Only match non-API routes — API 404s should fall through to the notFound handler
+// for structured JSON error responses
+app.get(/^\/(?!api).*/, (req, res) => {
   const indexPath = path.join(__dirname, 'public', 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    // RESPONSE METHOD: res.status().send()
     res.status(404).send('Frontend not found. Make sure to build the React app first.');
   }
 });
-app.use(notFound);      // 404 handler — route not matched
+app.use(notFound);      // 404 handler — route not matched (returns structured JSON)
 app.use(errorHandler);  // global error handler — logs and returns JSON
 
 // ── START SERVER (Lectures 45-48: use server.listen instead of app.listen) ────
