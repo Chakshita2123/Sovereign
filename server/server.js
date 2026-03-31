@@ -23,7 +23,7 @@ const config     = require('./config');               // config/index.js
 const logger     = require('./middleware/logger');     // custom logger middleware
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const requestId      = require('./middleware/requestId');     // UUID tracing
-const { globalLimiter } = require('./middleware/rateLimiter'); // rate limiting
+const { globalLimiter, authLimiter } = require('./middleware/rateLimiter'); // rate limiting
 const flash          = require('./middleware/flash');         // flash messages (Lectures 37-40)
 const { jwtAuth }    = require('./middleware/auth');          // JWT guard (Lectures 41-44)
 
@@ -246,7 +246,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── API Auth Routes (Lectures 41-44) — PUBLIC (no JWT guard) ─────────────────
-app.use('/api/auth',        authRoutes);           // /api/auth/register, /api/auth/login, /api/auth/me
+app.use('/api/auth',        authLimiter, authRoutes);  // /api/auth/register, /api/auth/login, /api/auth/me (stricter rate limit)
 
 // ── JWT-Protected API Routes (Lectures 41-44) ────────────────────────────────
 // All routes below require a valid JWT Bearer token in the Authorization header.
