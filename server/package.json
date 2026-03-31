@@ -1,7 +1,7 @@
 {
   "name": "sovereign-backend",
   "version": "1.0.0",
-  "description": "Sovereign SSI Platform — Node.js + Express Backend. Covers client-server architecture, HTTP module, Express routing, file handling, and exception handling as per course curriculum Lectures 1-24.",
+  "description": "Sovereign SSI Platform — Node.js + Express Backend. Covers Lectures 1-48: middleware, SSR, MongoDB, sessions, JWT, Passport.js, Socket.io.",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
