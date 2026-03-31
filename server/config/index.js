@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load .env file variables into process.env
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }); // Load .env from server/
 const path = require('path');
 
 // ─── Server Configuration ─────────────────────────────────────────────────────
