@@ -27,6 +27,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   // ── Build headers with optional JWT token (Lectures 41-44) ────────────────
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
   };
 
   // Attach JWT token if authenticated — stored in memory (not localStorage)
@@ -36,8 +37,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   const res = await fetch(`${BASE}${path}`, {
-    headers,
     ...options,
+    headers,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: { message: res.statusText } }));
@@ -91,12 +92,12 @@ export const identityApi = {
   resolve: (did: string) => apiFetch<unknown>(`/identity/${encodeURIComponent(did)}`),
 
   /** Create a new DID */
-  create: (method?: string) =>
-    apiFetch<unknown>('/identity', { method: 'POST', body: JSON.stringify({ method: method || 'did:indy' }) }),
+  create: (ownerName: string, method?: string) =>
+    apiFetch<unknown>('/identity/create', { method: 'POST', body: JSON.stringify({ ownerName, method: method || 'indy' }) }),
 
   /** Rotate keys for a DID */
   rotate: (did: string) =>
-    apiFetch<unknown>(`/identity/${encodeURIComponent(did)}/rotate`, { method: 'POST' }),
+    apiFetch<unknown>(`/identity/${encodeURIComponent(did)}/rotate`, { method: 'PATCH' }),
 
   /** Get identity score */
   score: (did: string) =>
