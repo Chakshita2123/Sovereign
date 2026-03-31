@@ -33,6 +33,14 @@ const proofRequestSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    holderDid: {
+      type: String,
+      default: null,
+    },
+    holder: {
+      type: String,
+      default: null,
+    },
     requestedFields: {
       type: [requestedFieldSchema],
       default: [],
