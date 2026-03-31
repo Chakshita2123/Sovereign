@@ -27,6 +27,14 @@ const credentialSchema = new mongoose.Schema(
       type: String,       // DID of the credential holder
       default: null,
     },
+    holderDID: {
+      type: String,       // DID of the credential holder (used by routes)
+      default: null,
+    },
+    title: {
+      type: String,       // Human-readable credential title
+      default: null,
+    },
     holderName: {
       type: String,       // Human-readable holder name
       default: null,
