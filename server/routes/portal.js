@@ -96,6 +96,11 @@ router.get('/docs', async (req, res, next) => {
       // Health
       { method: 'GET', path: '/api/health', description: 'System health check — memory, uptime, Node version, DB status', group: '🔧 System' },
 
+      // Auth (Lectures 41-44) — public endpoints, rate-limited (10 req/15 min)
+      { method: 'POST', path: '/api/auth/register', description: 'Create account (email, password, name, role) → returns JWT', group: '🔐 Authentication' },
+      { method: 'POST', path: '/api/auth/login',    description: 'Authenticate with email + password → returns JWT', group: '🔐 Authentication' },
+      { method: 'GET',  path: '/api/auth/me',       description: 'Verify JWT token and return current user profile (protected)', group: '🔐 Authentication' },
+
       // Credentials
       { method: 'GET',    path: '/api/credentials',           description: 'List all credentials (supports ?status, ?type, ?search filters)', group: '📜 Credentials' },
       { method: 'GET',    path: '/api/credentials/stats',     description: 'Aggregate credential statistics by status and type', group: '📜 Credentials' },
