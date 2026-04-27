@@ -73,13 +73,13 @@ function MarketingNav() {
         {/* CTAs */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/login')}
             className="hidden md:flex items-center gap-1 text-sm text-[#7A8FA6] hover:text-[#F0F4FF] transition-colors px-4 py-2 rounded-lg border border-[rgba(0,194,255,0.15)] hover:border-[rgba(0,194,255,0.35)]"
           >
             Sign In
           </button>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/login')}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:shadow-[0_0_20px_rgba(0,194,255,0.3)] hover:-translate-y-px"
             style={{ background: 'linear-gradient(135deg, #00C2FF, #7B2FFF)' }}
           >
@@ -163,7 +163,7 @@ export function LandingPage() {
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login')}
                 className="flex items-center gap-3 px-8 py-4 rounded-xl text-white font-semibold text-lg transition-all hover:-translate-y-1"
                 style={{
                   background: 'linear-gradient(135deg, #00C2FF, #7B2FFF)',
@@ -181,7 +181,7 @@ export function LandingPage() {
               </button>
 
               <button
-                onClick={() => navigate('/dashboard/issuer')}
+                onClick={() => navigate('/login')}
                 className="flex items-center gap-3 px-8 py-4 rounded-xl text-[#F0F4FF] font-semibold text-lg transition-all hover:-translate-y-px"
                 style={{
                   background: 'transparent',

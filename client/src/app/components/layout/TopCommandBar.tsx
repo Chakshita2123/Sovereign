@@ -9,10 +9,13 @@
 
 import { Search, Bell, Wifi, WifiOff } from 'lucide-react';
 import { useSocket } from '../../hooks/useSocket';
+import { useAuth } from '../../hooks/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function TopCommandBar() {
   const { isConnected, unreadCount, resetUnread } = useSocket();
+  const { user } = useAuth();
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';
 
   return (
     <div className="h-10 sticky top-0 z-40 bg-[rgba(5,13,26,0.85)] backdrop-blur-2xl border-b border-[rgba(0,194,255,0.08)]">
@@ -93,7 +96,7 @@ export function TopCommandBar() {
 
           {/* User Avatar */}
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00C2FF] to-[#7B2FFF] flex items-center justify-center cursor-pointer">
-            <span className="text-white text-xs font-bold">AC</span>
+            <span className="text-white text-xs font-bold">{initials}</span>
           </div>
         </div>
       </div>
