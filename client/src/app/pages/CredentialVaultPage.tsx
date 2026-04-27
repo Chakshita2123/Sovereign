@@ -3,11 +3,11 @@ import { motion } from 'motion/react';
 import { Search, Filter } from 'lucide-react';
 import { CredentialCard } from '../components/credentials/CredentialCard';
 import { CredentialDetailPanel } from '../components/credentials/CredentialDetailPanel';
-import { mockCredentials, Credential } from '../data/mockData';
+import { type Credential } from '../data/mockData';
 import { credentialsApi } from '../services/api';
 
 export function CredentialVaultPage() {
-  const [credentials, setCredentials] = useState<Credential[]>(mockCredentials);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
   const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'expiring' | 'revoked'>('all');
   const [searchQuery, setSearchQuery] = useState('');

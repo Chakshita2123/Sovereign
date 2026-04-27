@@ -1,11 +1,16 @@
 import { motion } from 'motion/react';
 import { DIDDisplay } from '../components/credentials/DIDDisplay';
 import { SecurityScoreRing } from '../components/credentials/SecurityScoreRing';
-import { userDID, mockKPIData } from '../data/mockData';
+import { mockKPIData } from '../data/mockData';
 import { QrCode, Key, Clock, Shield, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '../hooks/AuthContext';
 
 export function DIDIdentityPage() {
+  const { user } = useAuth();
+  const displayName = user?.name || 'User';
+  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  const userDID = user?.did || `did:indy:sovereign:${user?.id?.slice(0, 16) || 'unknown'}`;
   const [expandedDID, setExpandedDID] = useState(false);
 
   const verificationMethods = [
@@ -79,7 +84,7 @@ export function DIDIdentityPage() {
               {/* Avatar with verification ring */}
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00C2FF] to-[#7B2FFF] flex items-center justify-center">
-                  <span className="text-white text-3xl font-bold">AC</span>
+                  <span className="text-white text-3xl font-bold">{initials}</span>
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#00FF88] rounded-full border-4 border-[#0A1628] flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-white" />
@@ -88,7 +93,7 @@ export function DIDIdentityPage() {
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-[#F0F4FF] text-2xl font-bold">Alex Chen</h2>
+                  <h2 className="text-[#F0F4FF] text-2xl font-bold">{displayName}</h2>
                   <div className="px-3 py-1 rounded-full bg-[rgba(0,255,136,0.08)] border border-[#00FF88] text-[#00FF88] text-xs font-semibold">
                     VERIFIED IDENTITY
                   </div>

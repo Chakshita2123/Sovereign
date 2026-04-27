@@ -14,7 +14,7 @@ import { CredentialCard } from '../components/credentials/CredentialCard';
 import { ActivityFeedItem } from '../components/credentials/ActivityFeedItem';
 import { ProofRequestCard } from '../components/credentials/ProofRequestCard';
 import {
-  mockCredentials, mockActivities, mockProofRequests, mockKPIData,
+  mockKPIData,
   type Credential, type Activity, type ProofRequest,
 } from '../data/mockData';
 import { Vault, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
@@ -24,16 +24,16 @@ import { ShareCredentialModal } from '../components/modals/ShareCredentialModal'
 import { dashboardApi, credentialsApi } from '../services/api';
 import { useSocket } from '../hooks/useSocket';
 
+const emptyKpi = { ...mockKPIData, totalCredentials: 0, activeVerifications: 0, credentialsExpiring: 0, securityScore: 0 };
+
 export function OverviewPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState<Credential>(mockCredentials[0]);
-  const [credentials, setCredentials] = useState<Credential[]>(mockCredentials);
-  const [activities, setActivities] = useState<Activity[]>(mockActivities);
-  const [proofRequests, setProofRequests] = useState<ProofRequest[]>(mockProofRequests);
-  const [kpiData, setKpiData] = useState(mockKPIData);
+  const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [proofRequests, setProofRequests] = useState<ProofRequest[]>([]);
+  const [kpiData, setKpiData] = useState(emptyKpi);
   const [loading, setLoading] = useState(true);
-  // backendStatus tracks whether live API or fallback mock data is in use
-  const [_backendStatus, setBackendStatus] = useState<'live' | 'mock'>('mock');
 
   // ── Socket.io: Subscribe to live events (Lectures 45-48) ────────────────────
   const { onEvent, isConnected } = useSocket();
@@ -46,16 +46,14 @@ export function OverviewPage() {
           credentialsApi.getAll(),
         ]);
         if (dashboard) {
-          setActivities(dashboard.recentActivities || mockActivities);
-          setProofRequests(dashboard.pendingProofRequests || mockProofRequests);
-          setKpiData({ ...mockKPIData, ...dashboard.kpi });
-          setBackendStatus('live');
+          setActivities(dashboard.recentActivities || []);
+          setProofRequests(dashboard.pendingProofRequests || []);
+          setKpiData({ ...emptyKpi, ...dashboard.kpi });
         }
         if (creds?.length) setCredentials(creds);
         if (creds?.length) setSelectedCredential(creds[0]);
       } catch {
-        // Backend not running — silently fall back to mock data
-        setBackendStatus('mock');
+        // Backend not running — start with empty state
       } finally {
         setLoading(false);
       }
