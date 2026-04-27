@@ -10,7 +10,7 @@ const compression    = require('compression');     // NPM: Gzip response compres
 const methodOverride = require('method-override'); // NPM: PUT/DELETE from HTML forms (Lectures 29-32)
 const mongoose       = require('mongoose');         // NPM: MongoDB ODM (Lectures 33-36)
 const session        = require('express-session'); // NPM: Session management (Lectures 37-40)
-const MongoStore     = require('connect-mongo');   // NPM: MongoDB session store (Lectures 37-40)
+const { MongoStore } = require('connect-mongo');   // NPM: MongoDB session store (Lectures 37-40)
 const passport       = require('passport');         // NPM: Authentication framework (Lectures 41-44)
 const { Server }     = require('socket.io');        // NPM: Real-time WebSocket server (Lectures 45-48)
 
@@ -72,8 +72,9 @@ io.on('connection', (socket) => {
   console.log(`⚡ Socket connected: ${socket.id}`);
 
   // Each holder joins their own room by DID so events are targeted
+  // Basic validation: DID must match expected format to prevent room name injection
   socket.on('join:wallet', ({ did }) => {
-    if (!did) return;
+    if (!did || typeof did !== 'string' || !/^did:[a-z]+:[a-zA-Z0-9._-]+$/.test(did)) return;
     socket.join(`wallet:${did}`);
     console.log(`  → joined room wallet:${did}`);
   });
@@ -133,8 +134,8 @@ app.use(cors({
 // ── 2. Body Parsers ───────────────────────────────────────────────────────────
 // express.json()           — parses JSON bodies → req.body
 // express.urlencoded()     — parses HTML form bodies → req.body
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // ── Method Override (Lectures 29-32) ─────────────────────────────────────────
 // HTML forms only support GET and POST. method-override lets us use PUT/DELETE

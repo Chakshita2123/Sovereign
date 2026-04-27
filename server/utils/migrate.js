@@ -46,7 +46,7 @@ async function migrateCollection(name, Model, records, idField = 'id') {
     const result = await Model.findOneAndUpdate(
       { [idField]: key },
       { $set: record },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
     // If _id was just created (not previously existing), it's an upsert

@@ -46,7 +46,6 @@ const activitySchema = new mongoose.Schema(
     timestamp: {
       type: Date,
       default: Date.now,
-      index: true,
     },
     read: {
       type: Boolean,

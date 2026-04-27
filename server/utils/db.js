@@ -69,7 +69,7 @@ const update = async (Model, id, updates) => {
   const updated = await Model.findOneAndUpdate(
     { id },
     { $set: safeUpdates },
-    { new: true, lean: true }
+    { returnDocument: 'after', lean: true }
   );
   return updated;
 };

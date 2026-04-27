@@ -19,7 +19,7 @@ router.get('/:did', asyncWrapper(async (req, res) => {
 
   // Validate DID format
   if (!isValidDID(did)) {
-    const err = new Error(`Invalid DID format: ${did}`);
+    const err = new Error('Invalid DID format');
     err.statusCode = 400; throw err;
   }
 
@@ -27,7 +27,7 @@ router.get('/:did', asyncWrapper(async (req, res) => {
   const record = await Identity.findOne({ did }).lean();
 
   if (!record) {
-    const err = new Error(`DID not found: ${did}`);
+    const err = new Error('DID not found');
     err.statusCode = 404; throw err;
   }
 
@@ -112,7 +112,7 @@ router.patch('/:did/rotate', asyncWrapper(async (req, res) => {
         trustScore: Math.min(100, (record.trustScore || 72) + 10),
       },
     },
-    { new: true, lean: true }
+    { returnDocument: 'after', lean: true }
   );
 
   res.json({

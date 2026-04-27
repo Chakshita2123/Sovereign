@@ -26,8 +26,18 @@ const STATE_MAP = {
 const connect = async () => {
   // ── Event Listeners ───────────────────────────────────────────────────────
   // These fire on connection lifecycle events — useful for logging and monitoring
-  mongoose.connection.on('connected', () => {
+  mongoose.connection.on('connected', async () => {
     console.log('✅ MongoDB connected');
+    try {
+      const User = require('../models/User');
+      const existing = await User.findOne({ email: 'demo@sovereign.dev' });
+      if (!existing) {
+        const demo = new User({ email: 'demo@sovereign.dev', name: 'Demo User', role: 'holder', passwordHash: 'placeholder' });
+        demo.password = 'demo123';
+        await demo.save();
+        console.log('✅ Demo account created (demo@sovereign.dev / demo123)');
+      }
+    } catch (e) { /* ignore if already exists */ }
   });
 
   mongoose.connection.on('error', (err) => {
@@ -43,8 +53,9 @@ const connect = async () => {
   // socketTimeoutMS: how long to wait for socket operations before timing out
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
+      bufferTimeoutMS: 30000,
     });
   } catch (err) {
     console.error('❌ MongoDB initial connection failed:', err.message);

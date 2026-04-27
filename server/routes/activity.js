@@ -48,7 +48,7 @@ router.post('/proof-requests/:id/approve', asyncWrapper(async (req, res) => {
   const updated = await ProofRequest.findOneAndUpdate(
     { id: req.params.id },
     { $set: { status: 'approved' } },
-    { new: true, lean: true }
+    { returnDocument: 'after', lean: true }
   );
 
   // ── Socket.io: Notify holder that proof was approved (Lectures 45-48) ───────
@@ -74,7 +74,7 @@ router.post('/proof-requests/:id/deny', asyncWrapper(async (req, res) => {
   const updated = await ProofRequest.findOneAndUpdate(
     { id: req.params.id },
     { $set: { status: 'denied' } },
-    { new: true, lean: true }
+    { returnDocument: 'after', lean: true }
   );
 
   res.json({ success: true, data: { ...updated, deniedAt: new Date().toISOString() }, message: 'Request denied' });

@@ -75,16 +75,9 @@ userSchema.virtual('password').set(function (value) {
 // ── Pre-save hook: Hash password ──────────────────────────────────────────────
 // Runs before every save(). If _password is set (via virtual), hash it.
 // This demonstrates Mongoose middleware (lifecycle hooks) — Lecture 41.
-userSchema.pre('save', async function (next) {
-  // Only hash if the virtual password was set
-  if (!this._password) return next();
-
-  try {
-    this.passwordHash = await bcrypt.hash(this._password, SALT_ROUNDS);
-    next();
-  } catch (err) {
-    next(err);
-  }
+userSchema.pre('save', async function () {
+  if (!this._password) return;
+  this.passwordHash = await bcrypt.hash(this._password, SALT_ROUNDS);
 });
 
 // ── Instance method: Compare password ─────────────────────────────────────────
@@ -98,7 +91,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 // ── Indexes ───────────────────────────────────────────────────────────────────
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);
