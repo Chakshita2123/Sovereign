@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.js$|^d\")",
+      "Bash(git -C /Users/chiragdawra/Desktop/HackSpace/sovereign log --oneline)",
+      "Bash(node -e \"require\\('bcrypt'\\).hash\\('@Anjali150806', 12\\).then\\(h => console.log\\(h\\)\\)\")",
+      "Bash(timeout 15 node server.js)",
+      "Bash(node *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(lsof -ti:3001)",
+      "Bash(xargs kill *)",
+      "Bash(npx vite *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
