@@ -9,7 +9,7 @@ const ERROR_LOG = path.join(__dirname, '..', 'data', 'errors.log');
 // LECTURE 21-24: Response Methods — res.status().json()
 // LECTURE 25-28: Enhanced with request ID tracing
 function notFound(req, res, next) {
-  const error = new Error(`Route not found: ${req.method} ${req.url}`);
+  const error = new Error('Route not found');
   error.statusCode = 404;
   next(error); // pass to the error handler below
 }

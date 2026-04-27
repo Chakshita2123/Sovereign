@@ -60,7 +60,7 @@ router.post('/', asyncWrapper(async (req, res) => {
     const e = new Error('name, did, type are required'); e.statusCode = 400; throw e;
   }
   if (!isValidDID(did)) {
-    const e = new Error(`Invalid DID format: ${did}`); e.statusCode = 400; throw e;
+    const e = new Error('Invalid DID format'); e.statusCode = 400; throw e;
   }
   const issuer = await db.create(Issuer, {
     name, did, category: type,
@@ -153,8 +153,9 @@ router.get('/:id/export', asyncWrapper(async (req, res) => {
   const issuer = await db.findById(Issuer, req.params.id);
   if (!issuer) { const e = new Error('Issuer not found'); e.statusCode = 404; throw e; }
 
-  // Fetch all credentials from MongoDB and send as downloadable JSON
-  const credentials = await db.readAll(Credential);
+  // Fetch only credentials issued by this issuer
+  const filter = issuer.did ? { issuerDID: issuer.did } : { issuer: issuer.name };
+  const credentials = await db.readAll(Credential, filter);
   const filename = `sovereign-credentials-${new Date().toISOString().split('T')[0]}.json`;
 
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

@@ -46,7 +46,7 @@ const signToken = (user) => jwt.sign(
 // The client can immediately use this token for authenticated API calls.
 router.post('/register', async (req, res, next) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name } = req.body;
 
     // ── Validate input ──────────────────────────────────────────────────────
     if (!email || !password || !name) {
@@ -74,10 +74,11 @@ router.post('/register', async (req, res, next) => {
 
     // ── Create user ─────────────────────────────────────────────────────────
     // The virtual `password` field triggers the pre-save bcrypt hook
+    // Role is always 'holder' on self-registration to prevent privilege escalation
     const user = new User({
       email,
       name,
-      role: role || 'holder',    // default to holder if not specified
+      role: 'holder',
       passwordHash: 'placeholder', // will be replaced by pre-save hook
     });
     user.password = password;    // triggers virtual → pre-save hook hashes it

@@ -1,4 +1,4 @@
-/**
+1/**
  * routes/portal.js — Server-Side Rendered Portal Routes
  * Lectures 29-32: EJS templates, SSR vs CSR, template partials
  * Lectures 37-40: Session-based authentication guard
@@ -67,7 +67,7 @@ router.get('/report/:id', async (req, res, next) => {
           <div class="sv-card text-center" style="margin-top: 4rem;">
             <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem; color: #f59e0b;"></i>
             <h3 class="fw-bold mt-3">Credential Not Found</h3>
-            <p class="text-muted">No credential with ID <code>${req.params.id}</code> exists.</p>
+            <p class="text-muted">No credential with the specified ID exists.</p>
             <a href="/portal" class="btn mt-2" style="background: var(--sv-primary); color: white;">
               <i class="bi bi-arrow-left me-1"></i>Back to Portal
             </a>

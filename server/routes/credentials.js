@@ -71,7 +71,7 @@ router.get('/status/:stat', asyncWrapper(async (req, res) => {
   const valid = ['verified', 'pending', 'revoked', 'expiring'];
 
   if (!valid.includes(stat)) {
-    const error = new Error(`Invalid status '${stat}'. Valid: ${valid.join(', ')}`);
+    const error = new Error(`Invalid status. Valid: ${valid.join(', ')}`);
     error.statusCode = 400;
     throw error; // asyncWrapper catches this and passes to errorHandler
   }
@@ -86,7 +86,7 @@ router.get('/:id', asyncWrapper(async (req, res) => {
   const credential = await db.findById(Credential, req.params.id);
 
   if (!credential) {
-    const error = new Error(`Credential not found: ${req.params.id}`);
+    const error = new Error(`Credential not found`);
     error.statusCode = 404;
     throw error;
   }
@@ -143,7 +143,7 @@ router.post('/', validateBody([
 router.put('/:id', asyncWrapper(async (req, res) => {
   const existing = await db.findById(Credential, req.params.id);
   if (!existing) {
-    const err = new Error(`Credential not found: ${req.params.id}`);
+    const err = new Error(`Credential not found`);
     err.statusCode = 404; throw err;
   }
   const updated = await db.update(Credential, req.params.id, req.body);
@@ -155,7 +155,7 @@ router.put('/:id', asyncWrapper(async (req, res) => {
 router.patch('/:id', asyncWrapper(async (req, res) => {
   const existing = await db.findById(Credential, req.params.id);
   if (!existing) {
-    const err = new Error(`Credential not found: ${req.params.id}`);
+    const err = new Error(`Credential not found`);
     err.statusCode = 404; throw err;
   }
   const updated = await db.update(Credential, req.params.id, req.body);
@@ -167,7 +167,7 @@ router.patch('/:id', asyncWrapper(async (req, res) => {
 router.delete('/:id', asyncWrapper(async (req, res) => {
   const deleted = await db.remove(Credential, req.params.id);
   if (!deleted) {
-    const err = new Error(`Credential not found: ${req.params.id}`);
+    const err = new Error(`Credential not found`);
     err.statusCode = 404; throw err;
   }
   // RESPONSE METHOD: res.status(200).json() — return what was deleted
@@ -179,7 +179,7 @@ router.delete('/:id', asyncWrapper(async (req, res) => {
 router.post('/:id/share', asyncWrapper(async (req, res) => {
   const credential = await db.findById(Credential, req.params.id);
   if (!credential) {
-    const err = new Error(`Credential not found: ${req.params.id}`);
+    const err = new Error(`Credential not found`);
     err.statusCode = 404; throw err;
   }
 
@@ -204,7 +204,7 @@ router.post('/:id/share', asyncWrapper(async (req, res) => {
 router.post('/:id/zkp', asyncWrapper(async (req, res) => {
   const credential = await db.findById(Credential, req.params.id);
   if (!credential) {
-    const err = new Error(`Credential not found: ${req.params.id}`);
+    const err = new Error(`Credential not found`);
     err.statusCode = 404; throw err;
   }
 
